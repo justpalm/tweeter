@@ -8,6 +8,7 @@ export interface PostStatusPresenterView extends MessageView{
   isLoading: boolean;
   post: string;
   setPost: (post: string) => void;
+  setIsLoading: (IsLoading: boolean) => void;
 }
 
 export class PostStatusPresenter extends Presenter<PostStatusPresenterView>{

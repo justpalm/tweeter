@@ -4,7 +4,7 @@ import useUserNavigationHook from "../navigate/UserNavigationHooks";
 import { Status } from "tweeter-shared";
 
 interface Props {
-  status: Status;
+  data: Status;
   featurePath: string;
 }
 
@@ -17,7 +17,7 @@ const navigatetoUser = useUserNavigationHook();
             <div className="row mx-0 px-0">
             <div className="col-auto p-3">
                 <img
-                src={props.status.user.imageUrl}
+                src={props.data.user.imageUrl}
                 className="img-fluid"
                 width="80"
                 alt="Posting user"
@@ -26,19 +26,19 @@ const navigatetoUser = useUserNavigationHook();
             <div className="col">
                 <h2>
                 <b>
-                    {props.status.user.firstName} {props.status.user.lastName}
+                    {props.data.user.firstName} {props.data.user.lastName}
                 </b>{" "}
                 -{" "}
                 <Link
-                    to={`/feed/${props.status.user.alias}`}
+                    to={`/feed/${props.data.user.alias}`}
                     onClick={(event) => navigatetoUser.navigateToUser(event, props.featurePath)}
                 >
-                    {props.status.user.alias}
+                    {props.data.user.alias}
                 </Link>
                 </h2>
-                {props.status.formattedDate}
+                {props.data.formattedDate}
                 <br />
-                <Post status={props.status} featurePath={props.featurePath} />
+                <Post status={props.data} featurePath={props.featurePath} />
             </div>
             </div>
         </div>

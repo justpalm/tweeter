@@ -5,7 +5,6 @@ export interface View{
 export interface MessageView extends View {
     displayInfoMessage : (message: string, duration: number) => string;
     deleteMessage : (messageId: string) => void;
-    setIsLoading: (isLoading: boolean) => void;
 }
 
 export abstract class Presenter<V extends View>{

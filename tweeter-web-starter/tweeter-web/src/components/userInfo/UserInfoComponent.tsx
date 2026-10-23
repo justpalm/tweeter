@@ -30,7 +30,6 @@ const UserInfo = () => {
     setIsFollower: setIsFollower,
     setFolloweeCount: setFolloweeCount,
     setFollowerCount: setFollowerCount,
-    setIsLoading : setIsLoading,
     setDisplayedUser : setDisplayedUser,
     navigatetoUser() {},
   };

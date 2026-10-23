@@ -1,45 +1,42 @@
 import { useState, useEffect, useRef } from "react";
 import InfiniteScroll from "react-infinite-scroll-component";
-import { User } from "tweeter-shared";
+import { Status, User } from "tweeter-shared";
 import { useParams } from "react-router-dom";
-import UserItem from "../userItem/UserItem";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfoActionHook, useUserInfoHook } from "../userInfo/UserInfoHooks";
-import { UserItemPresenter } from "../../presenter/UserItemPresenter";
-import { PagedItemView } from "../../presenter/PagedItemPresenter";
+import { PagedItemPresenter, PagedItemView } from "../../presenter/PagedItemPresenter";
+import { StatusService } from "../../model.service/StatusService";
+import { FollowService } from "../../model.service/FollowService";
 
-interface Props {
-    featureURL: string, 
-    presenterFactory: (listener : PagedItemView<User>) => UserItemPresenter
+
+interface Props<T extends User | Status, U extends StatusService | FollowService> {
+    featureUrl: string, 
+    presenterFactory: (listener : PagedItemView<T>) => PagedItemPresenter<T, U>
+    ItemComponent: React.ComponentType<{ data: T, featurePath: string }>;
 }
 
-export class ItemScroller {
-
-  private props : Props | undefined;
-
-  constrcutor (props: Props) {
-    this.props = props;
-  };
-
-  public ItemScroller = () => {
+const ItemScroller = <T extends User | Status, U extends StatusService | FollowService> 
+(props: Props<T,U>) => {
 
   const { displayErrorMessage } = useMessageActions();
-  const [items, setItems] = useState<User[]>([]);
+  const [items, setItems] = useState<T[]>([]);
   const { displayedUser, authToken } = useUserInfoHook();
   const { setDisplayedUser } = useUserInfoActionHook();
   const { displayedUser: displayedUserAliasParam } = useParams();
 
-  const listener: PagedItemView<User> = {
-    addItems: (newItems: User[]) => {
+
+
+  const listener: PagedItemView<T> = {
+    addItems: (newItems: T[]) => {
     setItems((previousItems) => [...previousItems, ...newItems]);
     },
     displayErrorMessage: displayErrorMessage
   };
 
 
-  const presenterRef = useRef<UserItemPresenter | null>(null)
+  const presenterRef = useRef<PagedItemPresenter<T,U> | null>(null)
   if(presenterRef.current === null) {
-    presenterRef.current = this.props.presenterFactory(listener)
+    presenterRef.current = props.presenterFactory(listener)
   };
   //The presenter never rerenders, hence this whole null logic. It remebers what it's previous values was,
   //basically it makes sure that if null does exist, it doens't make it go back.
@@ -84,16 +81,17 @@ export class ItemScroller {
         hasMore={presenterRef.current!.hasMoreItems}
         loader={<h4>Loading...</h4>}
       >
-        {items.map((item, index) => (
+        {items.map((item : T, index) => (
           <div
             key={index}
             className="row mb-3 mx-0 px-0 border rounded bg-white"
           >
-            <UserItem user={item} featurePath={this.props.featureURL} />
+            <props.ItemComponent data={item} featurePath={props.featureUrl} />
           </div>
         ))}
       </InfiniteScroll>
     </div>
   );
-  }
-}
+};
+
+export default ItemScroller;

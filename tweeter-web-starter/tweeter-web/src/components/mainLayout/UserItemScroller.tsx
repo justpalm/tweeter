@@ -81,7 +81,7 @@ const UserItemScroller = (props: Props) => {
             key={index}
             className="row mb-3 mx-0 px-0 border rounded bg-white"
           >
-            <UserItem user={item} featurePath={props.featureURL} />
+            <UserItem data={item} featurePath={props.featureURL} />
           </div>
         ))}
       </InfiniteScroll>

@@ -11,7 +11,6 @@ import { PagedItemView } from "../../presenter/PagedItemPresenter";
 export const PAGE_SIZE = 10;
 
 interface Props{
-    itemDescription : string;
     featureUrl: string;
     presenterFactory: (listener: PagedItemView<Status>) => StatusItemPresenter;
 }
@@ -82,7 +81,7 @@ const StatusItemScroller = (props : Props) => {
             key={index}
             className="row mb-3 mx-0 px-0 border rounded bg-white"
           >
-          <StatusItem status={item} featurePath={props.featureUrl}/>
+          <StatusItem data={item} featurePath={props.featureUrl}/>
           </div>
         ))}
       </InfiniteScroll>
