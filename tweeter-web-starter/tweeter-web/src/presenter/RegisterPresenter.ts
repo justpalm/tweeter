@@ -33,8 +33,7 @@ export class RegisterPresenter extends NewUserPresenter<RegisterView>{
       imageFileExtension : string,
       rememberMe : boolean
     ) => {
-
-      this.enterUser(
+      this.enteringUser(
       "register user",
       rememberMe,
       () => {return this.userService.register(firstName,

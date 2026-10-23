@@ -69,8 +69,8 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
   ): Promise<void> {
     this.changeFollowStatus(
     `Unfollowing ${userToUnfollow!.name}...`,
-    "follow user",
-    true,
+    "unfollow user",
+    false,
     () => {return this.service.unfollow(authToken, userToUnfollow)}
     )
   }
@@ -83,7 +83,7 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
 
     var UserToast = "";
 
-    try {
+    this.doFailureReportingOperation(async () => {
       UserToast = this.view.displayInfoMessage(
         `${action}...`,
         0
@@ -94,15 +94,9 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
       this.view.setIsFollower(isFollower);
       this.view.setFollowerCount(followerCount);
       this.view.setFolloweeCount(followeeCount);
-    } catch (error) {
-      this.view.displayErrorMessage(
-        `Failed to ${errorDescription} because of exception: ${error}`
-      );
-    } finally {
-      this.view.deleteMessage(UserToast);
-    }
-  }
+    }, errorDescription, async () => {this.view.deleteMessage(UserToast)})
+ }
 
-  
-  
 }
+
+

@@ -20,12 +20,10 @@ export class LoginPresenter extends NewUserPresenter<LoginView>{
     }
 
   public login = async (password : string, alias : string, rememberMe : boolean) => {
-    
-    this.enterUser(
+    this.enteringUser(
       "log user in",
       rememberMe,
       () => {return this.userService.login(alias, password)}
     )
   };
-
 }

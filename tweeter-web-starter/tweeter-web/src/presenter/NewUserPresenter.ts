@@ -9,29 +9,24 @@ export class NewUserPresenter<T extends LoginView | RegisterView> extends Presen
         super(view);
     }
 
-    public async enterUser(
+    public async enteringUser(
     errorDescription : string,
     rememberMe : boolean,
     operation : () => Promise<[User, AuthToken]>) : Promise<void> {
 
-    try {
-        await this.doFailureReportingOperation(
-        async () => {
-        this.view.setIsLoading(true);
+    await this.doFailureReportingOperation(
+    async () => {
+    this.view.setIsLoading(true);
 
-        const [user, authToken] = await operation();
+    const [user, authToken] = await operation();
 
-        this.view.updateUserInfo(user, user, authToken, rememberMe);
+    this.view.updateUserInfo(user, user, authToken, rememberMe);
 
-        if (`originalUrl` in this.view && !!this.view.originalUrl) {
-            this.view.navigate(this.view.originalUrl);
-        } else {
-            this.view.navigate(`/feed/${user.alias}`);
-        }
-        }, errorDescription)
-        } finally {
-        this.view.setIsLoading(false);
-        }
+    if (`originalUrl` in this.view && !!this.view.originalUrl) {
+        this.view.navigate(this.view.originalUrl);
+    } else {
+        this.view.navigate(`/feed/${user.alias}`);
     }
-    
+    }, errorDescription), () => {this.view.setIsLoading(false)}
+    }
 }

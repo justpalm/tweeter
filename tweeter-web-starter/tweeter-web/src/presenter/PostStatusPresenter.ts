@@ -1,5 +1,6 @@
 import { User, AuthToken, Status } from "tweeter-shared";
 import { MessageView, Presenter } from "./Presenter";
+import { StatusService } from "../model.service/StatusService";
 
 export interface PostStatusPresenterView extends MessageView{
   authToken: AuthToken;
@@ -11,6 +12,8 @@ export interface PostStatusPresenterView extends MessageView{
 
 export class PostStatusPresenter extends Presenter<PostStatusPresenterView>{
 
+  private service = new StatusService();
+
     constructor(view: PostStatusPresenterView) {
         super(view);
     }
@@ -20,8 +23,7 @@ public submitPost = async (event: React.MouseEvent) => {
 
     var postingStatusToastId = "";
 
-    try {
-      await this.doFailureReportingOperation( async () => {
+    this.doFailureReportingOperation( async () => {
       this.view.setIsLoading(true);
       postingStatusToastId = this.view.displayInfoMessage(
         "Posting status...",
@@ -29,28 +31,16 @@ public submitPost = async (event: React.MouseEvent) => {
       );
       
       const status = new Status(this.view.post, this.view.displayedUser!, Date.now());
-
-      await this.postStatus(this.view.authToken, status);
+      await this.service.postStatus(this.view.authToken, status);
 
       this.clearPost(event);
       this.view.displayInfoMessage("Status posted!", 2000);
-      }, "post the status")
 
-      } finally {
+      }, "post the status", async () => {
       this.view.deleteMessage(postingStatusToastId);
-      this.view.setIsLoading(false);
-    }
+      this.view.setIsLoading(false);})
   };
 
-
-  private postStatus = async (
-    authToken: AuthToken,
-    newStatus: Status,
-  ): Promise<void> => {
-    // Pause so we can see the logging out message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
-    // TODO: Call the server to post the status
-  };
 
   public clearPost = (event: React.MouseEvent) => {
     event.preventDefault();
