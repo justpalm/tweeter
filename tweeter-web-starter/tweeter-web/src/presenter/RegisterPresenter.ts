@@ -4,6 +4,7 @@ import { ChangeEvent } from "react";
 import { User } from "tweeter-shared/dist/model/domain/User";
 import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
 import { Presenter, View } from "./Presenter";
+import { NewUserPresenter } from "./NewUserPresenter";
 
 export interface RegisterView extends View {
   setIsLoading: (isLoading: boolean) => void;
@@ -15,13 +16,35 @@ export interface RegisterView extends View {
     ) => void,
 }
 
-export class RegisterPresenter extends Presenter<RegisterView>{
+export class RegisterPresenter extends NewUserPresenter<RegisterView>{
   private userService: UserService;
 
   constructor(view: RegisterView) {
     super(view);
     this.userService = new UserService();
   }
+
+  public register = async (
+      firstName : string,
+      lastName : string,
+      alias : string, 
+      password : string,
+      imageBytes : Uint8Array,
+      imageFileExtension : string,
+      rememberMe : boolean
+    ) => {
+
+      this.enterUser(
+      "register user",
+      rememberMe,
+      () => {return this.userService.register(firstName,
+          lastName,
+          alias,
+          password,
+          imageBytes,
+          imageFileExtension)}
+      )
+    }
 
  public handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -65,35 +88,4 @@ export class RegisterPresenter extends Presenter<RegisterView>{
   };
   
   
-  public doRegister = async (
-    firstName : string,
-    lastName : string,
-    alias : string, 
-    password : string,
-    imageBytes : Uint8Array,
-    imageFileExtension : string,
-    rememberMe : boolean
-  ) => {
-    try {
-       await this.doFailureReportingOperation(async () => {
-       this.view.setIsLoading(true);
-
-      const [user, authToken] = await this.userService.register(
-        firstName,
-        lastName,
-        alias,
-        password,
-        imageBytes,
-        imageFileExtension
-      );
-
-      this.view.updateUserInfo(user, user, authToken, rememberMe);
-
-      this.view.navigate(`/feed/${user.alias}`);
-
-     }, "register user")
-    } finally {
-      this.view.setIsLoading(false);
-    }
-  };
 }

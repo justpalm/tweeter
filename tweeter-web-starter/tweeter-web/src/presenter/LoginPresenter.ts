@@ -1,6 +1,7 @@
 import { UserService } from "../model.service/UserService";
-import type { AuthToken } from "tweeter-shared";
+import type { AuthToken} from "tweeter-shared";
 import { Presenter, View } from "./Presenter";
+import { NewUserPresenter } from "./NewUserPresenter";
 
 export interface LoginView extends View{ 
     setPassword: (password: string) => void;
@@ -11,7 +12,7 @@ export interface LoginView extends View{
     navigate: (path: string) => void;
 }  
   
-export class LoginPresenter extends Presenter<LoginView>{
+export class LoginPresenter extends NewUserPresenter<LoginView>{
     private userService: UserService = new UserService();
 
     constructor(view: LoginView) {
@@ -19,25 +20,12 @@ export class LoginPresenter extends Presenter<LoginView>{
     }
 
   public login = async (password : string, alias : string, rememberMe : boolean) => {
-    try {
-      await this.doFailureReportingOperation(
-      async () => {
-      this.view.setIsLoading(true);
-
-      const [user, authToken] = await this.userService.login(alias, password);
-
-      this.view.updateUserInfo(user, user, authToken, rememberMe);
-
-      if (!!this.view.originalUrl) {
-        this.view.navigate(this.view.originalUrl);
-      } else {
-        this.view.navigate(`/feed/${user.alias}`);
-      }
-
-      }, "log user in")
-    } finally {
-      this.view.setIsLoading(false);
-    }
+    
+    this.enterUser(
+      "log user in",
+      rememberMe,
+      () => {return this.userService.login(alias, password)}
+    )
   };
 
 }
