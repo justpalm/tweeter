@@ -12,10 +12,9 @@ const useUserNavigationHook = () => {
 
     const listener : UserNavigationHookView = {
         setDisplayedUser,
-        displayErrorMessage,
         navigate,
         authToken: authToken!,
-        displayedUser: displayedUser!
+        displayErrorMessage,
     };
 
     const presenterRef = useRef<UserNavigationHookPresenter | null>(null);

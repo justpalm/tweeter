@@ -7,7 +7,6 @@ export interface UserNavigationHookView extends View{
     setDisplayedUser: (toUser: any) => void;
     navigate: (url: string) => void;
     authToken: AuthToken;
-    displayedUser: User
 }
 
 
@@ -18,9 +17,9 @@ export class UserNavigationHookPresenter extends Presenter<UserNavigationHookVie
         super(view)
     }
 
-    public navigateToUser = async (event : React.MouseEvent, featureUrl : string) => {
+    public navigateToUser = async (displayedUser : User, event : React.MouseEvent, featureUrl : string) => {
         
-        const navigateToUser = async (event: React.MouseEvent, featureUrl : string) => {
+        const navigateToUser = async (displayedUser: User, event: React.MouseEvent, featureUrl : string) => {
             event.preventDefault();
 
 
@@ -35,13 +34,15 @@ export class UserNavigationHookPresenter extends Presenter<UserNavigationHookVie
             const toUser = await this.userService.getUser(this.view.authToken!, alias);
             
             if (toUser) {
-                if (!toUser.equals(this.view.displayedUser!)) {
+                if (!toUser.equals(displayedUser!)) {
+                console.log("We made it here");
                 this.view.setDisplayedUser(toUser);
+                console.log(`${featureUrl}${toUser.alias}`);
                 this.view.navigate(`${featureUrl}/${toUser.alias}`);
                 }
             }}, "get user")
                  
         }
-        return navigateToUser(event, featureUrl);
+        return navigateToUser(displayedUser, event, featureUrl);
     }
   }

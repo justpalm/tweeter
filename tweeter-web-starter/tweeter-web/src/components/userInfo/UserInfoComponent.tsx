@@ -56,7 +56,9 @@ const UserInfo = () => {
   const switchToLoggedInUser = (event: React.MouseEvent): void => {
     event.preventDefault();
     setDisplayedUser(currentUser!);
-    navigateToUser(event, `${getBaseUrl()}/${currentUser!.alias}`);
+    navigateToUser(displayedUser!, event, `${getBaseUrl()}/${currentUser!.alias}`);
+    console.log(displayedUser?.name)
+    console.log(currentUser?.name)
   };
 
   const getBaseUrl = (): string => {
