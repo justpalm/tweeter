@@ -3,11 +3,9 @@ import { FollowService } from "../model.service/FollowService";
 import { MessageView, Presenter, View } from "./Presenter";
 
 export interface UserInfoView extends MessageView {
-  setDisplayedUser: (user: User) => void,
   setIsFollower: (isFollower: boolean) => void;
   setFolloweeCount: (count: number) => void;
   setFollowerCount: (count: number) => void;
-  navigatetoUser : () => void;
 }
 
 export class UserInfoPresenter extends Presenter<UserInfoView>{
@@ -36,7 +34,7 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
 
   public async getFolloweeCount(authToken: AuthToken, currentuser: User) {
     await this.doFailureReportingOperation( async () => {
-      this.view.setFollowerCount(
+      this.view.setFolloweeCount(
         await this.service.getFolloweeCount(authToken, currentuser)
       );
     }, "get followees count")

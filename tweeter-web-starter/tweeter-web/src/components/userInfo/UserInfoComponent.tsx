@@ -30,9 +30,6 @@ const UserInfo = () => {
     setIsFollower: setIsFollower,
     setFolloweeCount: setFolloweeCount,
     setFollowerCount: setFollowerCount,
-    setDisplayedUser : setDisplayedUser,
-    
-    navigatetoUser() {},
   };
 
   const presenterRef = useRef<UserInfoPresenter | null>(null);
@@ -56,17 +53,16 @@ const UserInfo = () => {
     presenterRef.current!.getFollowerCount(authToken!, displayedUser!);
   }, [displayedUser]);
 
+  const getBaseUrl = (): string => {
+    const segments = location.pathname.split("/@");
+    return segments.length > 1 ? segments[0] : "/";
+  };  
+  
   const switchToLoggedInUser = (event: React.MouseEvent): void => {
     event.preventDefault();
     let featureUrl : string = `${getBaseUrl()}/${currentUser!.alias}`
     navigateToSpecifiedUser(featureUrl);
   };
-
-  const getBaseUrl = (): string => {
-    const segments = location.pathname.split("/@");
-    return segments.length > 1 ? segments[0] : "/";
-  };
-
 
   const followDisplayedUser = async (
     event: React.MouseEvent
