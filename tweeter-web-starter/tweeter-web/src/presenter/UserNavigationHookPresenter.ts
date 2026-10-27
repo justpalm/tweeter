@@ -1,13 +1,11 @@
+
 import { AuthToken, User } from "tweeter-shared";
 import { UserService } from "../model.service/UserService";
 import { Presenter, View } from "./Presenter";
 
 
 export interface UserNavigationHookView extends View{
-    setDisplayedUser: (toUser: any) => void;
     navigate: (url: string) => void;
-    authToken: AuthToken;
-    displayedUser: User
 }
 
 
@@ -18,10 +16,15 @@ export class UserNavigationHookPresenter extends Presenter<UserNavigationHookVie
         super(view)
     }
 
-    public navigateToUser = async (event : React.MouseEvent, featureUrl : string) => {
+    public navigateToUser = async ( toUrl : string, authToken : AuthToken, currentUser : User) => {
         
-        const navigateToUser = async (event: React.MouseEvent, featureUrl : string) => {
-            event.preventDefault();
+            // event.preventDefault(); // Note
+            // console.log(featureUrl);
+
+            const extractFeaturePath = (toUrl : string) : string => {
+                const urlObject = new URL(toUrl);
+                return urlObject.pathname.replace(/\/@[^/]+$/, "")
+            }
 
 
             const extractAlias = (value: string): string => {
@@ -29,19 +32,24 @@ export class UserNavigationHookPresenter extends Presenter<UserNavigationHookVie
                 return value.substring(index);
             };
 
-            
+            // console.log("what about here?")
             await this.doFailureReportingOperation(async () => {
-            const alias = extractAlias(event.target.toString());
-            const toUser = await this.userService.getUser(this.view.authToken!, alias);
-            
+            const alias = extractAlias(toUrl.toString());
+            const featureUrl = extractFeaturePath(toUrl);
+            const toUser = await this.userService.getUser(authToken!, alias);
+
+        
             if (toUser) {
-                if (!toUser.equals(this.view.displayedUser!)) {
-                this.view.setDisplayedUser(toUser);
+                // console.log(toUser.name);
+                // console.log(this.view.displayedUser.name); 
+                if (!toUser.equals(currentUser)) {
                 this.view.navigate(`${featureUrl}/${toUser.alias}`);
                 }
             }}, "get user")
-                 
-        }
-        return navigateToUser(event, featureUrl);
     }
+
+    public async navigateToSpecifiedUser(toUrl : string) {
+        this.view.navigate(toUrl)
+    }
+    
   }

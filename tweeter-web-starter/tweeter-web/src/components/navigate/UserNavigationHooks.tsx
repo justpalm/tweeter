@@ -11,11 +11,8 @@ const useUserNavigationHook = () => {
     const navigate = useNavigate();
 
     const listener : UserNavigationHookView = {
-        setDisplayedUser,
         displayErrorMessage,
         navigate,
-        authToken: authToken!,
-        displayedUser: displayedUser!
     };
 
     const presenterRef = useRef<UserNavigationHookPresenter | null>(null);
@@ -23,8 +20,23 @@ const useUserNavigationHook = () => {
         presenterRef.current = new UserNavigationHookPresenter(listener);
     }
 
+    const navigateToUser = async (event : React.MouseEvent) : Promise<void> => {
+        event.preventDefault();
+
+        presenterRef.current?.navigateToUser(event.target.toString(), authToken!, displayedUser!);
+    }  
+
+
+    const navigateToSpecifiedUser = async ( currentUrl : string ) : Promise<void> => {
+        presenterRef.current!.navigateToSpecifiedUser(currentUrl)
+
+
+
+    }
+
+
     return {
-       navigateToUser: presenterRef.current?.navigateToUser,
+       navigateToUser, navigateToSpecifiedUser
     };
 
 }

@@ -11,7 +11,7 @@ interface Props {
 const Post = (props: Props) => {
 
 //Should a presenter logic be implemented here for navigation? Unsure.
-const navigatetoUser = useUserNavigationHook();
+const { navigateToUser } = useUserNavigationHook();
 
   return (
     <>
@@ -20,7 +20,7 @@ const navigatetoUser = useUserNavigationHook();
           <Link
             key={index}
             to={`${props.featurePath}/${segment.text}`}
-            onClick={(event) => navigatetoUser.navigateToUser(event, props.featurePath)}
+            onClick={navigateToUser}
           >
             {segment.text}
           </Link>

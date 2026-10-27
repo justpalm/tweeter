@@ -21,7 +21,7 @@ const UserInfo = () => {
   const { currentUser, authToken, displayedUser } = useUserInfoHook();
   const { setDisplayedUser } = useUserInfoActionHook();
   const location = useLocation();
-  const { navigateToUser } = useUserNavigationHook();
+  const { navigateToSpecifiedUser } = useUserNavigationHook();
 
   const listener: UserInfoView = {
     displayInfoMessage: displayInfoMessage,
@@ -31,6 +31,7 @@ const UserInfo = () => {
     setFolloweeCount: setFolloweeCount,
     setFollowerCount: setFollowerCount,
     setDisplayedUser : setDisplayedUser,
+    
     navigatetoUser() {},
   };
 
@@ -40,6 +41,7 @@ const UserInfo = () => {
   }
 
   if (!displayedUser) {
+    console.log("asdhjasdfa")
     setDisplayedUser(currentUser!);
   }
 
@@ -49,14 +51,15 @@ const UserInfo = () => {
       currentUser!,
       displayedUser!
     );
+    console.log("asdhjasdfa")
     presenterRef.current!.getFolloweeCount(authToken!, displayedUser!);
     presenterRef.current!.getFollowerCount(authToken!, displayedUser!);
   }, [displayedUser]);
 
   const switchToLoggedInUser = (event: React.MouseEvent): void => {
     event.preventDefault();
-    setDisplayedUser(currentUser!);
-    navigateToUser(event, `${getBaseUrl()}/${currentUser!.alias}`);
+    let featureUrl : string = `${getBaseUrl()}/${currentUser!.alias}`
+    navigateToSpecifiedUser(featureUrl);
   };
 
   const getBaseUrl = (): string => {
