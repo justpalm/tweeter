@@ -3,7 +3,7 @@ import { UserService } from "../model.service/UserService";
 import { ChangeEvent } from "react";
 import { User } from "tweeter-shared/dist/model/domain/User";
 import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
-import { Presenter, View } from "./Presenter";
+import { View } from "./Presenter";
 import { NewUserPresenter } from "./NewUserPresenter";
 
 export interface RegisterView extends View {
