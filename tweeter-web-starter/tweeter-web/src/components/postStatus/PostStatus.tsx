@@ -3,18 +3,15 @@ import { useRef, useState } from "react";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfoHook } from "../userInfo/UserInfoHooks";
 import { PostStatusPresenter, PostStatusPresenterView } from "../../presenter/PostStatusPresenter";
-import { useNavigate } from "react-router";
 
 const PostStatus = () => {
   const { displayErrorMessage, displayInfoMessage, deleteMessage } = useMessageActions()
   const { currentUser, authToken} = useUserInfoHook();
   const [post, setPost] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const navigate = useNavigate();
 
 
   const listener : PostStatusPresenterView = {
-      navigate : navigate,
       displayErrorMessage : displayErrorMessage,
       displayInfoMessage : displayInfoMessage,
       deleteMessage : deleteMessage,
@@ -24,7 +21,6 @@ const PostStatus = () => {
       isLoading: isLoading,
       post: post,
       setPost: setPost,
-      updateUserInfo(currentUser, displayedUser, authToken, remember) {},
   };
   
   const presenterRef = useRef<PostStatusPresenter | null>(null);

@@ -30,7 +30,7 @@ const navigatetoUser = useUserNavigationHook();
               -{" "}
               <Link
                 to={`${props.featurePath}/${props.data.alias}`}
-                onClick={(event) => navigatetoUser.navigateToUser(event, props.featurePath)}
+                onClick={(event) => navigatetoUser.navigateToUser(event)}
               >
                 {props.data.alias}
               </Link>

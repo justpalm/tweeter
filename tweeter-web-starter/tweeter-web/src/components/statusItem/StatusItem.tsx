@@ -31,7 +31,7 @@ const navigatetoUser = useUserNavigationHook();
                 -{" "}
                 <Link
                     to={`/feed/${props.data.user.alias}`}
-                    onClick={(event) => navigatetoUser.navigateToUser(event, props.featurePath)}
+                    onClick={(event) => navigatetoUser.navigateToUser(event)}
                 >
                     {props.data.user.alias}
                 </Link>
