@@ -2,7 +2,7 @@ import { User, AuthToken, Status } from "tweeter-shared";
 import { MessageView, Presenter } from "./Presenter";
 import { StatusService } from "../model.service/StatusService";
 
-export interface PostStatusPresenterView extends MessageView{
+export interface PostStatusView extends MessageView{
   authToken: AuthToken;
   displayedUser: User;
   isLoading: boolean;
@@ -11,36 +11,45 @@ export interface PostStatusPresenterView extends MessageView{
   setIsLoading: (IsLoading: boolean) => void;
 }
 
-export class PostStatusPresenter extends Presenter<PostStatusPresenterView>{
+export class PostStatusPresenter extends Presenter<PostStatusView>{
 
-  private service = new StatusService();
+  private _service : StatusService;
 
-    constructor(view: PostStatusPresenterView) {
+    constructor(view: PostStatusView) {
         super(view);
+        this._service = new StatusService();
     }
 
-public submitPost = async (event: React.MouseEvent) => {
-    event.preventDefault();
 
-    var postingStatusToastId = "";
+  public get service() {
+    return this._service;
+  }
 
-    this.doFailureReportingOperation( async () => {
-      this.view.setIsLoading(true);
-      postingStatusToastId = this.view.displayInfoMessage(
-        "Posting status...",
-        0,
-      );
-      
-      const status = new Status(this.view.post, this.view.displayedUser!, Date.now());
-      await this.service.postStatus(this.view.authToken, status);
+  
 
-      this.clearPost(event);
-      this.view.displayInfoMessage("Status posted!", 2000);
+  public submitPost = async (event: React.MouseEvent) => {
+      console.log("HELLO")
+      event.preventDefault();
 
-      }, "post the status", async () => {
-      this.view.deleteMessage(postingStatusToastId);
-      this.view.setIsLoading(false);})
-  };
+      var postingStatusToastId = "";
+
+      this.doFailureReportingOperation( async () => {
+        this.view.setIsLoading(true);
+        postingStatusToastId = this.view.displayInfoMessage(
+          "Posting status...",
+          0,
+        );
+        
+        const status = new Status(this.view.post, this.view.displayedUser!, Date.now());
+        await this.service.postStatus(this.view.authToken, status);
+
+        this.clearPost(event);
+        this.view.displayInfoMessage("Status posted!", 2000);
+
+        }, "post the status", async () => {
+        this.view.deleteMessage(postingStatusToastId);
+        this.view.setIsLoading(false);})
+    };
 
 
   public clearPost = (event: React.MouseEvent) => {
@@ -50,6 +59,7 @@ public submitPost = async (event: React.MouseEvent) => {
 
   public checkButtonStatus = (post: string, authToken : AuthToken, 
     displayedUser : User, isLoading : boolean) => {
+    console.log("test", !post.trim() || !authToken || !displayedUser || isLoading)
     return !post.trim() || !authToken || !displayedUser || isLoading;
   };
 }

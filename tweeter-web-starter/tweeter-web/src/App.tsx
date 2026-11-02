@@ -19,7 +19,6 @@ import { LoginPresenter, LoginView } from "./presenter/LoginPresenter";
 import { RegisterPresenter, RegisterView } from "./presenter/RegisterPresenter";
 import { PagedItemPresenter, PagedItemView } from "./presenter/PagedItemPresenter";
 import { Status, User } from "tweeter-shared";
-import { UserService } from "./model.service/UserService";
 import { StatusService } from "./model.service/StatusService";
 import ItemScroller from "./components/mainLayout/ItemScroller";
 import StatusItem from "./components/statusItem/StatusItem";

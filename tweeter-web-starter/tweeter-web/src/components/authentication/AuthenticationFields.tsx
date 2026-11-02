@@ -8,7 +8,7 @@ interface Props {
   setAlias: Dispatch<SetStateAction<string>>;  
   alias: string;
   password: string;
-  originalUrl?: string;
+  // originalUrl?: string;
   fuctiontype: string;
   loginListener?: LoginView;
   registerListener?: RegisterView;
@@ -63,6 +63,7 @@ const AuthenticationFields = (props : Props) => {
             className="form-control"
             size={50}
             id="aliasInput"
+            aria-label = "alias"
             placeholder="name@example.com"
             onKeyDown={(event) => onEnter(props.fuctiontype, event)}
             onChange={(event) => props.setAlias(event.target.value)}
@@ -74,6 +75,7 @@ const AuthenticationFields = (props : Props) => {
             type="password"
             className="form-control bottom"
             id="passwordInput"
+            aria-labe = "password"
             placeholder="Password"
             onKeyDown={(event) => onEnter(props.fuctiontype, event)}
             onChange={(event) => props.setPassword(event.target.value)}

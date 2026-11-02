@@ -8,10 +8,15 @@ navigate: (path: string) => void;
 }  
   
 export class AppNavbarPresenter extends Presenter<AppNavbarView> {
-    private userService: UserService = new UserService();
+    private _service: UserService;
 
     constructor(view: AppNavbarView) {
         super(view);
+        this._service = new UserService();
+    }
+
+    public get service() {
+        return this._service;
     }
 
     public async logOut(authToken : AuthToken){
@@ -19,7 +24,7 @@ export class AppNavbarPresenter extends Presenter<AppNavbarView> {
 
         await this.doFailureReportingOperation(async () => {
     
-        await this.userService.logout(authToken);
+        await this.service.logout(authToken);
 
         this.view.deleteMessage(loggingOutToastId);
         this.view.clearUserInfo();

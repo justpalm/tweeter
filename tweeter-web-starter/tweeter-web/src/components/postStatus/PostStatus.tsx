@@ -2,16 +2,16 @@ import "./PostStatus.css";
 import { useRef, useState } from "react";
 import { useMessageActions } from "../toaster/MessageHooks";
 import { useUserInfoHook } from "../userInfo/UserInfoHooks";
-import { PostStatusPresenter, PostStatusPresenterView } from "../../presenter/PostStatusPresenter";
+import { PostStatusPresenter, PostStatusView } from "../../presenter/PostStatusPresenter";
 
 const PostStatus = () => {
-  const { displayErrorMessage, displayInfoMessage, deleteMessage } = useMessageActions()
-  const { currentUser, authToken} = useUserInfoHook();
+  const {displayErrorMessage, displayInfoMessage, deleteMessage } = useMessageActions()
+  const {currentUser, authToken} = useUserInfoHook();
   const [post, setPost] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
 
-  const listener : PostStatusPresenterView = {
+  const listener : PostStatusView = {
       displayErrorMessage : displayErrorMessage,
       displayInfoMessage : displayInfoMessage,
       deleteMessage : deleteMessage,

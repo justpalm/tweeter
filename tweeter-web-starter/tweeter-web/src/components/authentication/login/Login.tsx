@@ -51,7 +51,9 @@ const Login = (props: Props) => {
   const inputFieldFactory = () => {
     return (
       <>
-        <AuthenticationtFields originalUrl = {props.originalUrl} alias = {alias} setAlias={setAlias} 
+        <AuthenticationtFields 
+        // originalUrl = {props.originalUrl} 
+        alias = {alias} setAlias={setAlias} 
         password={password} setPassword={setPassword} fuctiontype={"/register"}
         loginListener={listener} rememberMe = {rememberMe}/>
       </>
