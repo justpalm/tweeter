@@ -1,6 +1,5 @@
-import OverlayTrigger from "react-bootstrap/esm/OverlayTrigger";
+import { OverlayTrigger, Tooltip } from "react-bootstrap";
 import { useMessageActions } from "../toaster/MessageHooks";
-import Tooltip from "react-bootstrap/esm/Tooltip";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 
 const OAuth = () => {

@@ -4,6 +4,7 @@ import { PagedItemView } from "./PagedItemPresenter";
 import { PAGE_SIZE } from "../presenter/PagedItemPresenter";
 
 export class StoryPresenter extends StatusItemPresenter {
+  
     public constructor(view: PagedItemView<Status>) {
         super(view);
     }

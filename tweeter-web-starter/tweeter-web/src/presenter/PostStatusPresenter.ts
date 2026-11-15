@@ -4,7 +4,6 @@ import { StatusService } from "../model.service/StatusService";
 
 export interface PostStatusView extends MessageView{
   authToken: AuthToken;
-  displayedUser: User;
   isLoading: boolean;
   post: string;
   setPost: (post: string) => void;
@@ -25,11 +24,18 @@ export class PostStatusPresenter extends Presenter<PostStatusView>{
     return this._service;
   }
 
+
+  public getStatus(post : string, displayedUser : User, time : number) {
+    // console.log(`${time}`);
+    return new Status(post, displayedUser!, time)
+    }
   
 
-  public submitPost = async (event: React.MouseEvent) => {
-      console.log("HELLO")
-      event.preventDefault();
+  public submitPost = async (
+    post : string, displayedUser : User, authToken : AuthToken,
+    event?: React.MouseEvent, ) => 
+    {
+      event?.preventDefault();
 
       var postingStatusToastId = "";
 
@@ -40,26 +46,22 @@ export class PostStatusPresenter extends Presenter<PostStatusView>{
           0,
         );
         
-        const status = new Status(this.view.post, this.view.displayedUser!, Date.now());
-        await this.service.postStatus(this.view.authToken, status);
-
+        const status = this.getStatus(post, displayedUser!, Date.now());
+        await this.service.postStatus(authToken, status);
+        
         this.clearPost(event);
         this.view.displayInfoMessage("Status posted!", 2000);
 
         }, "post the status", async () => {
         this.view.deleteMessage(postingStatusToastId);
-        this.view.setIsLoading(false);})
+        this.view.setIsLoading(false);
+      })
     };
 
 
-  public clearPost = (event: React.MouseEvent) => {
-    event.preventDefault();
+  public clearPost = (event?: React.MouseEvent) => {
+    event?.preventDefault();
     this.view.setPost("");
   };
 
-  public checkButtonStatus = (post: string, authToken : AuthToken, 
-    displayedUser : User, isLoading : boolean) => {
-    console.log("test", !post.trim() || !authToken || !displayedUser || isLoading)
-    return !post.trim() || !authToken || !displayedUser || isLoading;
-  };
 }

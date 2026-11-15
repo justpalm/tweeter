@@ -38,7 +38,6 @@ const UserInfo = () => {
   }
 
   if (!displayedUser) {
-    console.log("asdhjasdfa")
     setDisplayedUser(currentUser!);
   }
 
@@ -48,7 +47,6 @@ const UserInfo = () => {
       currentUser!,
       displayedUser!
     );
-    console.log("asdhjasdfa")
     presenterRef.current!.getFolloweeCount(authToken!, displayedUser!);
     presenterRef.current!.getFollowerCount(authToken!, displayedUser!);
   }, [displayedUser]);

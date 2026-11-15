@@ -75,7 +75,7 @@ const AuthenticationFields = (props : Props) => {
             type="password"
             className="form-control bottom"
             id="passwordInput"
-            aria-labe = "password"
+            aria-label = "password"
             placeholder="Password"
             onKeyDown={(event) => onEnter(props.fuctiontype, event)}
             onChange={(event) => props.setPassword(event.target.value)}

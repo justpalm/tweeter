@@ -24,9 +24,7 @@ const ItemScroller = <T extends User | Status, U extends StatusService | FollowS
   const { setDisplayedUser } = useUserInfoActionHook();
   const { displayedUser: displayedUserAliasParam } = useParams();
 
-
-
-  const listener: PagedItemView<T> = {
+  const listener: PagedItemView<T> = { 
     addItems: (newItems: T[]) => {
     setItems((previousItems) => [...previousItems, ...newItems]);
     },

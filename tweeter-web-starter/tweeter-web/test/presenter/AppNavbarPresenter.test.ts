@@ -18,10 +18,8 @@ describe ("AppNavbarPresenter" , () => {
         mockAppNavbarPresenterView = mock<AppNavbarView>();
         const mockApppNavbarPresenterViewInstance = instance(mockAppNavbarPresenterView);
 
-        
         const appNavbarPresenterSpy = spy(new AppNavbarPresenter(mockApppNavbarPresenterViewInstance));
         appNavbarPresenter = instance(appNavbarPresenterSpy);
-
 
         mockService = mock<UserService>()   
         when(appNavbarPresenterSpy.service).thenReturn(instance(mockService));
@@ -30,7 +28,7 @@ describe ("AppNavbarPresenter" , () => {
 
     it("tells the view to display a logging out message", async () =>{
         await appNavbarPresenter.logOut(authToken)
-        verify(mockAppNavbarPresenterView.displayInfoMessage(anything(), 0)).once();
+        verify(mockAppNavbarPresenterView.displayInfoMessage("Logging Out...", 0)).once();
     })
 
 

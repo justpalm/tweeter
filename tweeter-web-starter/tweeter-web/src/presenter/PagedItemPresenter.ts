@@ -61,7 +61,7 @@ export abstract class PagedItemPresenter<T, U extends Service> extends Presenter
 
     protected abstract itemDescription(): string; 
 
-    protected abstract getMoreItems(authToken : AuthToken, userAlisa : string) : Promise<[T[], boolean]>
+    protected abstract getMoreItems(authToken : AuthToken, userAlias : string) : Promise<[T[], boolean]>
 
     public async getUser(
         authToken : AuthToken,

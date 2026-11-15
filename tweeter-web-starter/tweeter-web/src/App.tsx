@@ -112,8 +112,7 @@ const AuthenticatedRoutes = () => {
         "/followees",
         (view: PagedItemView<User>) => new FolloweePresenter(view),
         UserItem
-        )} /> 
-      
+        )} />    
         
         <Route path="followers/:displayedUser" 
         key={`followers -${displayedUser!.alias }`}
