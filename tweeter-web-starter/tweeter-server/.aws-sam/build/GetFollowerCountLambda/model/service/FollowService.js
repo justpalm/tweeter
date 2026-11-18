@@ -7,9 +7,8 @@ class FollowService {
         // TODO: Replace with the result of calling server
         return tweeter_shared_1.FakeData.instance.isFollower();
     };
-    getFolloweeCount = async (authToken, user) => {
-        // TODO: Replace with the result of calling server
-        return tweeter_shared_1.FakeData.instance.getFolloweeCount(user.alias);
+    getFolloweeCount = async (token, userAlias) => {
+        return tweeter_shared_1.FakeData.instance.getFolloweeCount(userAlias);
     };
     getFollowerCount = async (token, userAlias) => {
         return tweeter_shared_1.FakeData.instance.getFollowerCount(userAlias);
@@ -32,7 +31,7 @@ class FollowService {
         await new Promise((f) => setTimeout(f, 2000));
         // TODO: Call the server
         const followerCount = await this.getFollowerCount(authToken.token, userToFollow.alias);
-        const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
+        const followeeCount = await this.getFolloweeCount(authToken.token, userToFollow.alias);
         return [followerCount, followeeCount];
     };
     unfollow = async (authToken, userToUnfollow) => {
@@ -40,7 +39,7 @@ class FollowService {
         await new Promise((f) => setTimeout(f, 2000));
         // TODO: Call the server
         const followerCount = await this.getFollowerCount(authToken.token, userToUnfollow.alias);
-        const followeeCount = await this.getFolloweeCount(authToken, userToUnfollow);
+        const followeeCount = await this.getFolloweeCount(authToken.token, userToUnfollow.alias);
         return [followerCount, followeeCount];
     };
 }

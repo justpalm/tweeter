@@ -3,7 +3,6 @@ import { AuthToken, FakeData, User, UserDto } from "tweeter-shared";
 
 export class FollowService {
 
-
     public getIsFollowerStatus = async (
       authToken: AuthToken,
       user: User,
@@ -14,11 +13,10 @@ export class FollowService {
     };
 
     public getFolloweeCount = async (
-      authToken: AuthToken,
-      user: User,
+      token: string,
+      userAlias: string,
     ): Promise<number> => {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getFolloweeCount(user.alias);
+      return FakeData.instance.getFolloweeCount(userAlias);
     };
 
     public getFollowerCount = async (
@@ -67,7 +65,7 @@ export class FollowService {
     // TODO: Call the server
 
     const followerCount = await this.getFollowerCount(authToken.token, userToFollow.alias);
-    const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
+    const followeeCount = await this.getFolloweeCount(authToken.token, userToFollow.alias);
 
     return [followerCount, followeeCount];
   };
@@ -83,7 +81,7 @@ export class FollowService {
     // TODO: Call the server
 
     const followerCount = await this.getFollowerCount(authToken.token, userToUnfollow.alias);
-    const followeeCount = await this.getFolloweeCount(authToken, userToUnfollow);
+    const followeeCount = await this.getFolloweeCount(authToken.token, userToUnfollow.alias);
 
     return [followerCount, followeeCount];
   };

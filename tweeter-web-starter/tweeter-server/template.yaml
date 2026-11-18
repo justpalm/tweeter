@@ -133,6 +133,20 @@ Resources:
                 responses: *commonAmazonResponses
               responses: *commonSwaggerResponses
 
+          /lambda/followees/count:
+            post:
+              description: Returns the followee count for the specified user (dummy data for Milestone 3).
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFolloweeCountLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
           /lambda/followers/count:
             post:
               description: Returns the follower count for the specified user (dummy data for Milestone 3).
@@ -206,6 +220,20 @@ Resources:
           Properties:
             RestApiId: !Ref tweeterApi
             Path: /lambda/followers/list
+            Method: POST
+
+  GetFolloweeCountLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetFolloweeCountLambda
+      Handler: lambda/follow/GetFolloweeCountLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/followees/count
             Method: POST
 
   GetFollowerCountLambda:
