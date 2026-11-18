@@ -1,6 +1,10 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { User } from "tweeter-shared";
 import type {
+  FollowRequest,
+  FollowResponse,
+  IsFollowingRequest,
+  IsFollowingResponse,
   GetFolloweeCountRequest,
   GetFolloweeCountResponse,
   GetFollowerCountRequest,
@@ -15,6 +19,45 @@ export class ServerFacade {
     "https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod";
 
   private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+  public async follow(
+    request: FollowRequest,
+  ): Promise<[followerCount: number, followeeCount: number]> {
+    const response = await this.clientCommunicator.doPost<
+      FollowRequest,
+      FollowResponse
+    >(request, "/lambda/follow");
+
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to follow user");
+    }
+
+    if (
+      !Number.isInteger(response.followerCount) || response.followerCount < 0 ||
+      !Number.isInteger(response.followeeCount) || response.followeeCount < 0
+    ) {
+      throw new Error("Invalid follow counts returned by server");
+    }
+
+    return [response.followerCount, response.followeeCount];
+  }
+
+  public async isFollowing(request: IsFollowingRequest): Promise<boolean> {
+    const response = await this.clientCommunicator.doPost<
+      IsFollowingRequest,
+      IsFollowingResponse
+    >(request, "/lambda/follow/is-following");
+
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to determine following status");
+    }
+
+    if (typeof response.isFollowing !== "boolean") {
+      throw new Error("Invalid following status returned by server");
+    }
+
+    return response.isFollowing;
+  }
 
   public async getFolloweeCount(
     request: GetFolloweeCountRequest,

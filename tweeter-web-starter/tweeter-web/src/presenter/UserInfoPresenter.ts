@@ -22,11 +22,11 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
     displayedUser: User
   ) {
       await this.doFailureReportingOperation ( async () => {
-      if (currentuser === displayedUser) {
+      if (currentuser.alias === displayedUser.alias) {
         this.view.setIsFollower(false);
       } else {
         this.view.setIsFollower(
-          await this.service.getIsFollowerStatus(authToken!, currentuser, displayedUser)
+          await this.service.isFollowing(authToken, currentuser, displayedUser)
         );
       }
     }, "determine follower status")

@@ -1,5 +1,5 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { Service } from "./Service";
 import { ServerFacade } from "../model/net/ServerFacade";
 
@@ -7,13 +7,16 @@ export class FollowService implements Service {
   private readonly serverFacade = new ServerFacade();
 
 
-    public getIsFollowerStatus = async (
+    public isFollowing = async (
       authToken: AuthToken,
-      user: User,
-      selectedUser: User,
+      follower: User,
+      followee: User,
     ): Promise<boolean> => {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.isFollower();
+      return this.serverFacade.isFollowing({
+        token: authToken.token,
+        followerAlias: follower.alias,
+        followeeAlias: followee.alias,
+      });
     };
 
     public getFolloweeCount = async (
@@ -64,19 +67,14 @@ export class FollowService implements Service {
         });
       };
 
-    public follow = async (
+  public follow = async (
     authToken: AuthToken,
     userToFollow: User,
   ): Promise<[followerCount: number, followeeCount: number]> => {
-    // Pause so we can see the follow message. Remove when connected to the server
-    await new Promise((f) => setTimeout(f, 2000));
-
-    // TODO: Call the server
-
-    const followerCount = await this.getFollowerCount(authToken, userToFollow);
-    const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
-
-    return [followerCount, followeeCount];
+    return this.serverFacade.follow({
+      token: authToken.token,
+      userAlias: userToFollow.alias,
+    });
   };
 
 
