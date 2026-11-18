@@ -1,9 +1,10 @@
-import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
-import { User } from "tweeter-shared/dist/model/domain/User";
-import { FakeData } from "tweeter-shared/dist/util/FakeData";
+// AI-assisted: see AI-ATTRIBUTION.md
+import { AuthToken, FakeData, User } from "tweeter-shared";
 import { Service } from "./Service";
+import { ServerFacade } from "../model/net/ServerFacade";
 
 export class FollowService implements Service {
+  private readonly serverFacade = new ServerFacade();
 
 
     public getIsFollowerStatus = async (
@@ -19,16 +20,20 @@ export class FollowService implements Service {
       authToken: AuthToken,
       user: User,
     ): Promise<number> => {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getFolloweeCount(user.alias);
+      return this.serverFacade.getFolloweeCount({
+        token: authToken.token,
+        userAlias: user.alias,
+      });
     };
 
     public getFollowerCount = async (
       authToken: AuthToken,
       user: User,
     ): Promise<number> => {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getFollowerCount(user.alias);
+      return this.serverFacade.getFollowerCount({
+        token: authToken.token,
+        userAlias: user.alias,
+      });
     };
 
     public async loadMoreFollowees (
@@ -37,8 +42,12 @@ export class FollowService implements Service {
       pageSize: number,
       lastItem: User | null
     ): Promise<[User[], boolean]> {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getPageOfUsers(lastItem, pageSize, userAlias);
+      return this.serverFacade.getMoreFollowees({
+        token: authToken.token,
+        userAlias,
+        pageSize,
+        lastItem: lastItem?.dto ?? null,
+      });
     };
     
     public async loadMoreFollowers (
@@ -47,8 +56,12 @@ export class FollowService implements Service {
         pageSize: number,
         lastItem: User | null
       ): Promise<[User[], boolean]> {
-        // TODO: Replace with the result of calling server
-        return FakeData.instance.getPageOfUsers(lastItem, pageSize, userAlias);
+        return this.serverFacade.getMoreFollowers({
+          token: authToken.token,
+          userAlias,
+          pageSize,
+          lastItem: lastItem?.dto ?? null,
+        });
       };
 
     public follow = async (

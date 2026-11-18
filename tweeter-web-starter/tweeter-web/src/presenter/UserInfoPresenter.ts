@@ -53,7 +53,7 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
     authToken: AuthToken,
     userToFollow: User
   ): Promise<void> {
-    this.changeFollowStatus(
+    await this.changeFollowStatus(
     `Following ${userToFollow!.name}...`,
     "follow user",
     true,
@@ -65,7 +65,7 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
     authToken: AuthToken,
     userToUnfollow: User
   ): Promise<void> {
-    this.changeFollowStatus(
+    await this.changeFollowStatus(
     `Unfollowing ${userToUnfollow!.name}...`,
     "unfollow user",
     false,
@@ -81,7 +81,7 @@ export class UserInfoPresenter extends Presenter<UserInfoView>{
 
     var UserToast = "";
 
-    this.doFailureReportingOperation(async () => {
+    await this.doFailureReportingOperation(async () => {
       UserToast = this.view.displayInfoMessage(
         `${action}...`,
         0

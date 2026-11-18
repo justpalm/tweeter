@@ -69,7 +69,7 @@ const UserInfo = () => {
 
     try {
       setIsLoading(true);
-      presenterRef.current!.followUser(authToken!, displayedUser!);
+      await presenterRef.current!.followUser(authToken!, displayedUser!);
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +82,7 @@ const UserInfo = () => {
 
     try {
       setIsLoading(true);
-      presenterRef.current!.unfollowUser(authToken!, displayedUser!);
+      await presenterRef.current!.unfollowUser(authToken!, displayedUser!);
     } finally {
       setIsLoading(false);
     }
@@ -136,6 +136,7 @@ const UserInfo = () => {
                       type="submit"
                       style={{ width: "6em" }}
                       onClick={unfollowDisplayedUser}
+                      disabled={isLoading}
                     >
                       {isLoading ? (
                         <span
@@ -154,6 +155,7 @@ const UserInfo = () => {
                       type="submit"
                       style={{ width: "6em" }}
                       onClick={followDisplayedUser}
+                      disabled={isLoading}
                     >
                       {isLoading ? (
                         <span
