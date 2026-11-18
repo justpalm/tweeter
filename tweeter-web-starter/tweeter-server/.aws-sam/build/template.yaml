@@ -88,7 +88,7 @@ Resources:
               Access-Control-Allow-Origin:
                 type: string
         paths:
-          /lambda/follow:
+          /lambda/followees/list:
             post:
               description: Returns a page of users followed by the specified user.
               consumes:
@@ -149,7 +149,7 @@ Resources:
                   headers:
                     Access-Control-Allow-Origin:
                       type: string
-          /lambda/followers:
+          /lambda/followers/list:
             post:
               description: Returns a page of followers of the specified user, continuing
                 after lastItem when provided.
@@ -162,6 +162,68 @@ Resources:
                 httpMethod: POST
                 uri:
                   Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFollowersLambda.Arn}/invocations
+                requestTemplates:
+                  application/json: $input.json('$')
+                responses:
+                  default:
+                    statusCode: 200
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
+                  .*bad-request.*:
+                    statusCode: 400
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
+                    responseTemplates:
+                      application/json: '{ "error": "$input.path(''$.errorMessage'')"
+                        }'
+                  .*unauthorized.*:
+                    statusCode: 401
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
+                    responseTemplates:
+                      application/json: '{ "error": "$input.path(''$.errorMessage'')"
+                        }'
+                  .*internal-server-error.*:
+                    statusCode: 500
+                    responseParameters:
+                      method.response.header.Access-Control-Allow-Origin: '''*'''
+                    responseTemplates:
+                      application/json: '{ "error": "$input.path(''$.errorMessage'')"
+                        }'
+              responses:
+                '200':
+                  description: OK
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
+                '400':
+                  description: Bad Request
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
+                '401':
+                  description: Unauthorized
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
+                '500':
+                  description: Internal Server Error
+                  headers:
+                    Access-Control-Allow-Origin:
+                      type: string
+          /lambda/followers/count:
+            post:
+              description: Returns the follower count for the specified user (dummy
+                data for Milestone 3).
+              consumes:
+              - application/json
+              produces:
+              - application/json
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetFollowerCountLambda.Arn}/invocations
                 requestTemplates:
                   application/json: $input.json('$')
                 responses:
@@ -238,7 +300,7 @@ Resources:
           Properties:
             RestApiId:
               Ref: tweeterApi
-            Path: /lambda/follow
+            Path: /lambda/followees/list
             Method: POST
       CodeUri: GetFolloweesLambda
     Metadata:
@@ -261,8 +323,31 @@ Resources:
           Properties:
             RestApiId:
               Ref: tweeterApi
-            Path: /lambda/followers
+            Path: /lambda/followers/list
             Method: POST
       CodeUri: GetFollowersLambda
     Metadata:
       SamResourceId: GetFollowersLambda
+  GetFollowerCountLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetFollowerCountLambda
+      Handler: lambda/follow/GetFollowerCountLambda.handler
+      Policies:
+      - AWSLambdaBasicExecutionRole
+      - AmazonSESFullAccess
+      - CloudWatchFullAccess
+      - AmazonDynamoDBFullAccess
+      - AmazonS3FullAccess
+      - AmazonSQSFullAccess
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId:
+              Ref: tweeterApi
+            Path: /lambda/followers/count
+            Method: POST
+      CodeUri: GetFollowerCountLambda
+    Metadata:
+      SamResourceId: GetFollowerCountLambda

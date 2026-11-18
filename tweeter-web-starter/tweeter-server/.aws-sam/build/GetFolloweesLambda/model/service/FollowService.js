@@ -11,9 +11,8 @@ class FollowService {
         // TODO: Replace with the result of calling server
         return tweeter_shared_1.FakeData.instance.getFolloweeCount(user.alias);
     };
-    getFollowerCount = async (authToken, user) => {
-        // TODO: Replace with the result of calling server
-        return tweeter_shared_1.FakeData.instance.getFollowerCount(user.alias);
+    getFollowerCount = async (token, userAlias) => {
+        return tweeter_shared_1.FakeData.instance.getFollowerCount(userAlias);
     };
     async loadMoreFollowers(token, userAlias, pageSize, lastItem) {
         // TODO: Replace with the result of calling server
@@ -32,7 +31,7 @@ class FollowService {
         // Pause so we can see the follow message. Remove when connected to the server
         await new Promise((f) => setTimeout(f, 2000));
         // TODO: Call the server
-        const followerCount = await this.getFollowerCount(authToken, userToFollow);
+        const followerCount = await this.getFollowerCount(authToken.token, userToFollow.alias);
         const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
         return [followerCount, followeeCount];
     };
@@ -40,7 +39,7 @@ class FollowService {
         // Pause so we can see the unfollow message. Remove when connected to the server
         await new Promise((f) => setTimeout(f, 2000));
         // TODO: Call the server
-        const followerCount = await this.getFollowerCount(authToken, userToUnfollow);
+        const followerCount = await this.getFollowerCount(authToken.token, userToUnfollow.alias);
         const followeeCount = await this.getFolloweeCount(authToken, userToUnfollow);
         return [followerCount, followeeCount];
     };
