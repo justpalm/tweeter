@@ -7,6 +7,6 @@ architecture = "x86_64"
 handler = "lambda/follow/GetFolloweesLambda.handler"
 manifest_hash = ""
 packagetype = "Zip"
-functions = ["GetFolloweesLambda"]
+functions = ["GetFolloweesLambda", "GetFollowersLambda"]
 
 [layer_build_definitions]

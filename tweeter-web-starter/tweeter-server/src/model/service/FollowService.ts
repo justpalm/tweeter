@@ -22,11 +22,10 @@ export class FollowService {
     };
 
     public getFollowerCount = async (
-      authToken: AuthToken,
-      user: User,
+      token: string,
+      userAlias: string,
     ): Promise<number> => {
-      // TODO: Replace with the result of calling server
-      return FakeData.instance.getFollowerCount(user.alias);
+      return FakeData.instance.getFollowerCount(userAlias);
     };
 
 
@@ -67,7 +66,7 @@ export class FollowService {
 
     // TODO: Call the server
 
-    const followerCount = await this.getFollowerCount(authToken, userToFollow);
+    const followerCount = await this.getFollowerCount(authToken.token, userToFollow.alias);
     const followeeCount = await this.getFolloweeCount(authToken, userToFollow);
 
     return [followerCount, followeeCount];
@@ -83,7 +82,7 @@ export class FollowService {
 
     // TODO: Call the server
 
-    const followerCount = await this.getFollowerCount(authToken, userToUnfollow);
+    const followerCount = await this.getFollowerCount(authToken.token, userToUnfollow.alias);
     const followeeCount = await this.getFolloweeCount(authToken, userToUnfollow);
 
     return [followerCount, followeeCount];
