@@ -1,6 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import type {
+  RegisterRequest,
+  RegisterResponse,
   FollowRequest,
   FollowResponse,
   UnfollowRequest,
@@ -21,6 +23,33 @@ export class ServerFacade {
     "https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod";
 
   private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+  public async register(request: RegisterRequest): Promise<[User, AuthToken]> {
+    const response = await this.clientCommunicator.doPost<
+      RegisterRequest,
+      RegisterResponse
+    >(request, "/lambda/register");
+
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to register user");
+    }
+
+    const user = response.user;
+    if (
+      user == null ||
+      typeof user.firstName !== "string" ||
+      typeof user.lastName !== "string" ||
+      typeof user.alias !== "string" || user.alias.length === 0 ||
+      typeof user.imageUrl !== "string" ||
+      typeof response.token !== "string" || response.token.length === 0 ||
+      typeof response.timestamp !== "number" ||
+      !Number.isFinite(response.timestamp) || response.timestamp < 0
+    ) {
+      throw new Error("Invalid registration data returned by server");
+    }
+
+    return [User.fromDto(user) as User, new AuthToken(response.token, response.timestamp)];
+  }
 
   public async follow(
     request: FollowRequest,
