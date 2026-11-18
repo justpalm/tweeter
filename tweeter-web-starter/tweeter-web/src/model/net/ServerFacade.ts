@@ -3,6 +3,8 @@ import { User } from "tweeter-shared";
 import type {
   FollowRequest,
   FollowResponse,
+  UnfollowRequest,
+  UnfollowResponse,
   IsFollowingRequest,
   IsFollowingResponse,
   GetFolloweeCountRequest,
@@ -37,6 +39,28 @@ export class ServerFacade {
       !Number.isInteger(response.followeeCount) || response.followeeCount < 0
     ) {
       throw new Error("Invalid follow counts returned by server");
+    }
+
+    return [response.followerCount, response.followeeCount];
+  }
+
+  public async unfollow(
+    request: UnfollowRequest,
+  ): Promise<[followerCount: number, followeeCount: number]> {
+    const response = await this.clientCommunicator.doPost<
+      UnfollowRequest,
+      UnfollowResponse
+    >(request, "/lambda/unfollow");
+
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to unfollow user");
+    }
+
+    if (
+      !Number.isInteger(response.followerCount) || response.followerCount < 0 ||
+      !Number.isInteger(response.followeeCount) || response.followeeCount < 0
+    ) {
+      throw new Error("Invalid unfollow counts returned by server");
     }
 
     return [response.followerCount, response.followeeCount];
