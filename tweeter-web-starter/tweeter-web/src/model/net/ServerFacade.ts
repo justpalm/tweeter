@@ -1,6 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { AuthToken, User } from "tweeter-shared";
 import type {
+  LoginRequest,
+  LoginResponse,
   RegisterRequest,
   RegisterResponse,
   FollowRequest,
@@ -23,6 +25,30 @@ export class ServerFacade {
     "https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod";
 
   private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+  public async login(request: LoginRequest): Promise<[User, AuthToken]> {
+    const response = await this.clientCommunicator.doPost<LoginRequest, LoginResponse>(
+      request, "/lambda/login",
+    );
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to log in user");
+    }
+
+    const user = response.user;
+    if (
+      user == null ||
+      typeof user.firstName !== "string" ||
+      typeof user.lastName !== "string" ||
+      typeof user.alias !== "string" || user.alias.length === 0 ||
+      typeof user.imageUrl !== "string" ||
+      typeof response.token !== "string" || response.token.length === 0 ||
+      typeof response.timestamp !== "number" ||
+      !Number.isFinite(response.timestamp) || response.timestamp < 0
+    ) {
+      throw new Error("Invalid login data returned by server");
+    }
+    return [User.fromDto(user) as User, new AuthToken(response.token, response.timestamp)];
+  }
 
   public async register(request: RegisterRequest): Promise<[User, AuthToken]> {
     const response = await this.clientCommunicator.doPost<

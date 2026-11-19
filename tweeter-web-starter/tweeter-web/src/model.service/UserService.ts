@@ -21,19 +21,13 @@ export class UserService implements Service {
   };
 
 
-  public login = async (
+  // AI-assisted: see AI-ATTRIBUTION.md
+  public async login(
     alias: string,
     password: string
-  ): Promise<[User, AuthToken]> => {
-    // TODO: Replace with the result of calling the server
-    const user = FakeData.instance.firstUser;
-
-    if (user === null) {
-      throw new Error("Invalid alias or password");
-    }
-
-    return [user, FakeData.instance.authToken];
-  };
+  ): Promise<[User, AuthToken]> {
+    return this.serverFacade.login({ alias, password });
+  }
 
   // AI-assisted: see AI-ATTRIBUTION.md
   public async register(
