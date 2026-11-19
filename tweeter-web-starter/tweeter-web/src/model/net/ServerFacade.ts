@@ -1,6 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { AuthToken, User } from "tweeter-shared";
 import type {
+  GetUserRequest,
+  GetUserResponse,
   LogoutRequest,
   LogoutResponse,
   LoginRequest,
@@ -27,6 +29,30 @@ export class ServerFacade {
     "https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod";
 
   private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+  public async getUser(request: GetUserRequest): Promise<User | null> {
+    const response = await this.clientCommunicator.doPost<GetUserRequest, GetUserResponse>(
+      request, "/lambda/user/get",
+    );
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to get user");
+    }
+
+    const user = response.user;
+    if (user === null) {
+      return null;
+    }
+    if (
+      user == null ||
+      typeof user.firstName !== "string" ||
+      typeof user.lastName !== "string" ||
+      typeof user.alias !== "string" || user.alias.length === 0 ||
+      typeof user.imageUrl !== "string"
+    ) {
+      throw new Error("Invalid user data returned by server");
+    }
+    return User.fromDto(user);
+  }
 
   public async logout(request: LogoutRequest): Promise<void> {
     const response = await this.clientCommunicator.doPost<LogoutRequest, LogoutResponse>(

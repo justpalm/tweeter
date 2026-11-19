@@ -1,17 +1,17 @@
 import { Buffer } from "buffer";
-import { AuthToken, User, FakeData } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { Service } from "./Service";
 import { ServerFacade } from "../model/net/ServerFacade";
 
 export class UserService implements Service {
   private serverFacade = new ServerFacade();
 
+  // AI-assisted: see AI-ATTRIBUTION.md
   public async getUser (
     authToken: AuthToken,
     alias: string
   ): Promise<User | null> {
-    // TODO: Replace with the result of calling server
-    return FakeData.instance.findUserByAlias(alias);
+    return this.serverFacade.getUser({ token: authToken.token, alias });
   };
 
 
