@@ -1,6 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { AuthToken, User } from "tweeter-shared";
 import type {
+  LogoutRequest,
+  LogoutResponse,
   LoginRequest,
   LoginResponse,
   RegisterRequest,
@@ -25,6 +27,15 @@ export class ServerFacade {
     "https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod";
 
   private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+  public async logout(request: LogoutRequest): Promise<void> {
+    const response = await this.clientCommunicator.doPost<LogoutRequest, LogoutResponse>(
+      request, "/lambda/logout",
+    );
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to log out user");
+    }
+  }
 
   public async login(request: LoginRequest): Promise<[User, AuthToken]> {
     const response = await this.clientCommunicator.doPost<LoginRequest, LoginResponse>(
