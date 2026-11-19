@@ -1,10 +1,11 @@
+// AI-assisted: see AI-ATTRIBUTION.md
 import { Status } from "tweeter-shared";
 import { AuthToken } from "tweeter-shared/dist/model/domain/AuthToken";
-import { FakeData } from "tweeter-shared/dist/util/FakeData";
 import { Service } from "./Service";
+import { ServerFacade } from "../model/net/ServerFacade";
 
 export class StatusService implements Service {
-
+    private serverFacade = new ServerFacade();
 
     public async loadMoreStoryItems (
           authToken: AuthToken,
@@ -12,8 +13,12 @@ export class StatusService implements Service {
           pageSize: number,
           lastItem: Status | null
         ): Promise<[Status[], boolean]>{
-          // TODO: Replace with the result of calling server
-          return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
+          return this.serverFacade.loadMoreStoryItems({
+            token: authToken.token,
+            userAlias,
+            pageSize,
+            lastItem: lastItem === null ? null : lastItem.dto,
+          });
         };
     
     public async loadMoreFeedItems (
@@ -22,8 +27,12 @@ export class StatusService implements Service {
             pageSize: number,
             lastItem: Status | null
           ): Promise<[Status[], boolean]> {
-            // TODO: Replace with the result of calling server
-            return FakeData.instance.getPageOfStatuses(lastItem, pageSize);
+            return this.serverFacade.loadMoreFeedItems({
+              token: authToken.token,
+              userAlias,
+              pageSize,
+              lastItem: lastItem === null ? null : lastItem.dto,
+            });
         };
 
 

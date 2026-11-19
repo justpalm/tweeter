@@ -1,6 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { AuthToken, User } from "tweeter-shared";
+import { AuthToken, Status, User } from "tweeter-shared";
 import type {
+  PagedStatusItemRequest,
+  PagedStatusItemResponse,
   GetUserRequest,
   GetUserResponse,
   LogoutRequest,
@@ -29,6 +31,72 @@ export class ServerFacade {
     "https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod";
 
   private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+  public async loadMoreFeedItems(
+    request: PagedStatusItemRequest,
+  ): Promise<[Status[], boolean]> {
+    const response = await this.clientCommunicator.doPost<
+      PagedStatusItemRequest,
+      PagedStatusItemResponse
+    >(request, "/lambda/feed/list");
+
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to load feed items");
+    }
+    if (!Array.isArray(response.items) || typeof response.hasMore !== "boolean") {
+      throw new Error("Invalid feed data returned by server");
+    }
+
+    const items = response.items.map(dto => {
+      if (
+        dto == null || typeof dto.post !== "string" ||
+        typeof dto.timestamp !== "number" ||
+        !Number.isFinite(dto.timestamp) || dto.timestamp < 0 ||
+        dto.user == null ||
+        typeof dto.user.firstName !== "string" ||
+        typeof dto.user.lastName !== "string" ||
+        typeof dto.user.alias !== "string" || dto.user.alias.length === 0 ||
+        typeof dto.user.imageUrl !== "string"
+      ) {
+        throw new Error("Invalid feed data returned by server");
+      }
+      return Status.fromDto(dto) as Status;
+    });
+    return [items, response.hasMore];
+  }
+
+  public async loadMoreStoryItems(
+    request: PagedStatusItemRequest,
+  ): Promise<[Status[], boolean]> {
+    const response = await this.clientCommunicator.doPost<
+      PagedStatusItemRequest,
+      PagedStatusItemResponse
+    >(request, "/lambda/story/list");
+
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to load story items");
+    }
+    if (!Array.isArray(response.items) || typeof response.hasMore !== "boolean") {
+      throw new Error("Invalid story data returned by server");
+    }
+
+    const items = response.items.map(dto => {
+      if (
+        dto == null || typeof dto.post !== "string" ||
+        typeof dto.timestamp !== "number" ||
+        !Number.isFinite(dto.timestamp) || dto.timestamp < 0 ||
+        dto.user == null ||
+        typeof dto.user.firstName !== "string" ||
+        typeof dto.user.lastName !== "string" ||
+        typeof dto.user.alias !== "string" || dto.user.alias.length === 0 ||
+        typeof dto.user.imageUrl !== "string"
+      ) {
+        throw new Error("Invalid story data returned by server");
+      }
+      return Status.fromDto(dto) as Status;
+    });
+    return [items, response.hasMore];
+  }
 
   public async getUser(request: GetUserRequest): Promise<User | null> {
     const response = await this.clientCommunicator.doPost<GetUserRequest, GetUserResponse>(
