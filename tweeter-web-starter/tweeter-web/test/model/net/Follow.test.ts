@@ -83,6 +83,8 @@ describe("follow presenter with real client service", () => {
     };
     let completed = false;
     const operation = new UserInfoPresenter(view).followUser(token, user).then(() => { completed = true; });
+
+    //False because the operation is still pending, and the view methods should not have been called yet
     expect(completed).toBe(false);
     expect(view.setIsFollower).not.toHaveBeenCalled();
     expect(view.deleteMessage).not.toHaveBeenCalled();

@@ -19,7 +19,7 @@ describe("ServerFacade registration live API integration", () => {
     expect(token).toBeInstanceOf(AuthToken);
     expect(typeof token.token).toBe("string");
     expect(token.token.length).toBeGreaterThan(0);
-    expect(Number.isFinite(token.timestamp)).toBe(true);
+    expect((!!token.timestamp)).toBe(true);
     expect(token.timestamp).toBeGreaterThan(0);
     expect(token.timestamp).toBeLessThanOrEqual(Date.now());
   }, 30000);

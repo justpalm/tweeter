@@ -91,7 +91,7 @@ Resources:
             description: "OK"
             headers: *commonSwaggerResponseHeaders
           "400":
-            description: "Bad Request"
+            description: "Invalid request input; returns an error message prefixed bad-request:"
             headers: *commonSwaggerResponseHeaders
           "401":
             description: "Unauthorized"
@@ -107,7 +107,7 @@ Resources:
 
           /lambda/status/post:
             post:
-              description: Acknowledges posting using a token string and newStatus DTO containing post, nested user, and timestamp. Returns success and message. Milestone 3 does not persist the status, change feed or story data, or verify the session.
+              description: Acknowledges posting using a token string and newStatus DTO containing post, nested user, and timestamp. Returns success and message. Milestone 3 does not persist the status, change feed or story data, or verify the session. Requires a nonblank token, nonblank post and nested user fields, and a finite nonnegative timestamp (zero is valid). Invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -121,7 +121,7 @@ Resources:
 
           /lambda/feed/list:
             post:
-              description: Gets a feed page using token, userAlias, pageSize, and lastItem (a status DTO or null for the first page). Returns success, message, status DTO items, and hasMore. Milestone 3 uses dummy pagination without alias filtering or session verification.
+              description: Gets a feed page using token, userAlias, pageSize, and lastItem (a status DTO or null for the first page). Returns success, message, status DTO items, and hasMore. Milestone 3 uses dummy pagination without alias filtering or session verification. Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete status DTO with nonblank post and user fields and a finite nonnegative timestamp). Invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -135,7 +135,7 @@ Resources:
 
           /lambda/story/list:
             post:
-              description: Gets a story page using token, userAlias, pageSize, and lastItem (a status DTO or null for the first page). Returns success, message, status DTO items, and hasMore. Milestone 3 uses dummy pagination without alias filtering or session verification.
+              description: Gets a story page using token, userAlias, pageSize, and lastItem (a status DTO or null for the first page). Returns success, message, status DTO items, and hasMore. Milestone 3 uses dummy pagination without alias filtering or session verification. Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete status DTO with nonblank post and user fields and a finite nonnegative timestamp). Invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -149,7 +149,7 @@ Resources:
 
           /lambda/user/get:
             post:
-              description: Gets a user by alias using a token string. Returns success, message, and a user DTO or null when the alias is unknown. Milestone 3 uses dummy data without session verification.
+              description: Gets a user by alias using a token string. Returns success, message, and a user DTO or null when the alias is unknown. Milestone 3 uses dummy data without session verification. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -163,7 +163,7 @@ Resources:
 
           /lambda/logout:
             post:
-              description: Logs out using a token string and returns success and message. Milestone 3 acknowledges logout without persistently invalidating the token.
+              description: Logs out using a token string and returns success and message. Milestone 3 acknowledges logout without persistently invalidating the token. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -177,7 +177,7 @@ Resources:
 
           /lambda/login:
             post:
-              description: Logs in using alias and password without an existing token. Returns success, message, user DTO, token string, and timestamp. Milestone 3 returns a dummy user/session without verifying credentials.
+              description: Logs in using alias and password without an existing token. Returns success, message, user DTO, token string, and timestamp. Milestone 3 returns a dummy user/session without verifying credentials. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -191,7 +191,7 @@ Resources:
 
           /lambda/register:
             post:
-              description: Registers using firstName, lastName, alias, password, imageStringBase64, and imageFileExtension without an existing token. Returns success, message, user DTO, token string, and timestamp. Milestone 3 returns a dummy user/session without persisting the account or image.
+              description: Registers using firstName, lastName, alias, password, imageStringBase64, and imageFileExtension without an existing token. Returns success, message, user DTO, token string, and timestamp. Milestone 3 returns a dummy user/session without persisting the account or image. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -205,7 +205,7 @@ Resources:
 
           /lambda/unfollow:
             post:
-              description: Unfollows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the unfollow.
+              description: Unfollows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the unfollow. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -219,7 +219,7 @@ Resources:
 
           /lambda/follow:
             post:
-              description: Follows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the follow.
+              description: Follows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the follow. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -233,7 +233,7 @@ Resources:
 
           /lambda/follow/is-following:
             post:
-              description: Returns whether followerAlias follows followeeAlias. Accepts token, followerAlias, and followeeAlias; returns success, message, and a boolean isFollowing (dummy data for Milestone 3).
+              description: Returns whether followerAlias follows followeeAlias. Accepts token, followerAlias, and followeeAlias; returns success, message, and a boolean isFollowing (dummy data for Milestone 3). Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -247,7 +247,7 @@ Resources:
 
           /lambda/followees/list:
             post:
-              description: Returns a page of users followed by the specified user.
+              description: Returns a page of users followed by the specified user. Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete user DTO with nonblank firstName, lastName, alias, and imageUrl). Invalid input returns HTTP 400. Milestone 3 uses dummy data.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -261,7 +261,7 @@ Resources:
 
           /lambda/followers/list:
             post:
-              description: Returns a page of followers of the specified user, continuing after lastItem when provided.
+              description: Returns a page of followers of the specified user, continuing after lastItem (null for the first page). Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete user DTO with nonblank firstName, lastName, alias, and imageUrl). Invalid input returns HTTP 400. Milestone 3 uses dummy data.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -275,7 +275,7 @@ Resources:
 
           /lambda/followees/count:
             post:
-              description: Returns the followee count for the specified user (dummy data for Milestone 3).
+              description: Returns the followee count for the specified user (dummy data for Milestone 3). Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -289,7 +289,7 @@ Resources:
 
           /lambda/followers/count:
             post:
-              description: Returns the follower count for the specified user (dummy data for Milestone 3).
+              description: Returns the follower count for the specified user (dummy data for Milestone 3). Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:

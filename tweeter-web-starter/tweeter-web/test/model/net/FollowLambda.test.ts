@@ -12,6 +12,13 @@ afterEach(() => {
 });
 
 describe("follow Lambda and server service", () => {
+
+
+// .prototype is where regular class methods are stored.
+// Instances of the class can use those methods through prototype inheritance.
+// Mocking a method on .prototype can affect all instances that inherit that method.
+
+
   it.each([[7, 3], [0, 0]])(
     "passes JSON token/alias to the service and returns counts %i/%i",
     async (followerCount, followeeCount) => {
