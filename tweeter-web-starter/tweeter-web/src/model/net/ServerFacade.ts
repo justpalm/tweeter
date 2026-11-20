@@ -1,6 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { AuthToken, Status, User } from "tweeter-shared";
 import type {
+  PostStatusRequest,
+  PostStatusResponse,
   PagedStatusItemRequest,
   PagedStatusItemResponse,
   GetUserRequest,
@@ -31,6 +33,16 @@ export class ServerFacade {
     "https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod";
 
   private clientCommunicator = new ClientCommunicator(this.SERVER_URL);
+
+  public async postStatus(request: PostStatusRequest): Promise<void> {
+    const response = await this.clientCommunicator.doPost<
+      PostStatusRequest,
+      PostStatusResponse
+    >(request, "/lambda/status/post");
+    if (!response.success) {
+      throw new Error(response.message ?? "Failed to post status");
+    }
+  }
 
   public async loadMoreFeedItems(
     request: PagedStatusItemRequest,

@@ -11,15 +11,28 @@ const token = new AuthToken("test-token", 0);
 const user = new User("Amy", "Ames", "@amy", "image-url");
 const request = { token: "test-token", userAlias: "@amy" };
 
+
+// // Watches the function, but still executes it
+// jest.spyOn(globalThis, "fetch");
+
+// // Watches AND replaces the function's behavior
+// jest.spyOn(globalThis, "fetch")
+//   .mockResolvedValue(new Response("Fake response"));
+
 afterEach(() => {
   jest.restoreAllMocks();
 });
 
 describe("follow client/server contract", () => {
   it.each([[7, 3], [0, 0]])("returns count tuple %i/%i through one JSON POST", async (followerCount, followeeCount) => {
+    
+    //Return the follower and followee counts from the FakeData singleton, so that we can verify that the request is correct and that the response is correctly parsed.
     jest.spyOn(FakeData.instance, "getFollowerCount").mockReturnValue(followerCount);
     jest.spyOn(FakeData.instance, "getFolloweeCount").mockReturnValue(followeeCount);
-    const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
+
+    // we are returnign our own response from the server lambda, so we can check that the request is correct
+    const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(
+      async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/follow");
       expect(init?.method).toBe("POST");
       expect(new Headers(init?.headers).get("Content-type")).toBe("application/json");
@@ -42,6 +55,9 @@ describe("follow client/server contract", () => {
   it.each(["followerCount", "followeeCount"])("rejects invalid %s values", async (field) => {
     for (const value of ["7", -1, 1.5, null, undefined]) {
       jest.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({
+
+        //the field is a computed property name, so we can set it to different invalid values in the loop
+        // as well as the value 
         success: true, message: null, followerCount: 7, followeeCount: 3, [field]: value,
       })));
       await expect(new ServerFacade().follow(request)).rejects.toThrow("Invalid follow counts");

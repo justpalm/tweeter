@@ -105,6 +105,146 @@ Resources:
           # Endpoint definitions
           #
 
+          /lambda/status/post:
+            post:
+              description: Acknowledges posting using a token string and newStatus DTO containing post, nested user, and timestamp. Returns success and message. Milestone 3 does not persist the status, change feed or story data, or verify the session.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${PostStatusLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/feed/list:
+            post:
+              description: Gets a feed page using token, userAlias, pageSize, and lastItem (a status DTO or null for the first page). Returns success, message, status DTO items, and hasMore. Milestone 3 uses dummy pagination without alias filtering or session verification.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LoadMoreFeedItemsLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/story/list:
+            post:
+              description: Gets a story page using token, userAlias, pageSize, and lastItem (a status DTO or null for the first page). Returns success, message, status DTO items, and hasMore. Milestone 3 uses dummy pagination without alias filtering or session verification.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LoadMoreStoryItemsLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/user/get:
+            post:
+              description: Gets a user by alias using a token string. Returns success, message, and a user DTO or null when the alias is unknown. Milestone 3 uses dummy data without session verification.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${GetUserLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/logout:
+            post:
+              description: Logs out using a token string and returns success and message. Milestone 3 acknowledges logout without persistently invalidating the token.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LogoutLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/login:
+            post:
+              description: Logs in using alias and password without an existing token. Returns success, message, user DTO, token string, and timestamp. Milestone 3 returns a dummy user/session without verifying credentials.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${LoginLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/register:
+            post:
+              description: Registers using firstName, lastName, alias, password, imageStringBase64, and imageFileExtension without an existing token. Returns success, message, user DTO, token string, and timestamp. Milestone 3 returns a dummy user/session without persisting the account or image.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${RegisterLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/unfollow:
+            post:
+              description: Unfollows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the unfollow.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${UnfollowLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/follow:
+            post:
+              description: Follows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the follow.
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${FollowLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
+          /lambda/follow/is-following:
+            post:
+              description: Returns whether followerAlias follows followeeAlias. Accepts token, followerAlias, and followeeAlias; returns success, message, and a boolean isFollowing (dummy data for Milestone 3).
+              consumes: *commonConsumes
+              produces: *commonProduces
+              x-amazon-apigateway-integration:
+                type: aws
+                httpMethod: POST
+                uri:
+                  Fn::Sub: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${IsFollowingLambda.Arn}/invocations
+                requestTemplates: *commonRequestTemplates
+                responses: *commonAmazonResponses
+              responses: *commonSwaggerResponses
+
           /lambda/followees/list:
             post:
               description: Returns a page of users followed by the specified user.
@@ -193,6 +333,146 @@ Resources:
   #
   # Web API Lambda functions
   #
+
+  PostStatusLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: PostStatusLambda
+      Handler: lambda/status/PostStatusLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/status/post
+            Method: POST
+
+  LoadMoreFeedItemsLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LoadMoreFeedItemsLambda
+      Handler: lambda/status/LoadMoreFeedItemsLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/feed/list
+            Method: POST
+
+  LoadMoreStoryItemsLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LoadMoreStoryItemsLambda
+      Handler: lambda/status/LoadMoreStoryItemsLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/story/list
+            Method: POST
+
+  GetUserLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetUserLambda
+      Handler: lambda/user/GetUserLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/user/get
+            Method: POST
+
+  LogoutLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LogoutLambda
+      Handler: lambda/user/LogoutLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/logout
+            Method: POST
+
+  LoginLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: LoginLambda
+      Handler: lambda/user/LoginLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/login
+            Method: POST
+
+  RegisterLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: RegisterLambda
+      Handler: lambda/user/RegisterLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/register
+            Method: POST
+
+  UnfollowLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UnfollowLambda
+      Handler: lambda/follow/UnfollowLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/unfollow
+            Method: POST
+
+  FollowLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FollowLambda
+      Handler: lambda/follow/FollowLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/follow
+            Method: POST
+
+  IsFollowingLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: IsFollowingLambda
+      Handler: lambda/follow/IsFollowingLambda.handler
+      Policies: *commonPolicies
+      Events:
+        PostApi:
+          Type: Api
+          Properties:
+            RestApiId: !Ref tweeterApi
+            Path: /lambda/follow/is-following
+            Method: POST
 
   GetFolloweesLambda:
     Type: AWS::Serverless::Function

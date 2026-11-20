@@ -1,4 +1,5 @@
 // AI-assisted: see AI-ATTRIBUTION.md
+import { validatePageRequest } from "../validation/RequestValidation";
 import type {
   PagedUserItemRequest,
   PagedUserItemResponse,
@@ -8,6 +9,7 @@ import { FollowService } from "../../model/service/FollowService";
 export const handler = async (
   request: PagedUserItemRequest,
 ): Promise<PagedUserItemResponse> => {
+  validatePageRequest(request, "user");
   const followService = new FollowService();
   const [items, hasMore] = await followService.loadMoreFollowers(
     request.token,

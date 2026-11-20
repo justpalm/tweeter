@@ -3,10 +3,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FollowService = void 0;
 const tweeter_shared_1 = require("tweeter-shared");
 class FollowService {
-    getIsFollowerStatus = async (authToken, user, selectedUser) => {
-        // TODO: Replace with the result of calling server
+    async isFollowing(token, followerAlias, followeeAlias) {
+        // Milestone 3 dummy data; persistence will use the aliases later.
         return tweeter_shared_1.FakeData.instance.isFollower();
-    };
+    }
     getFolloweeCount = async (token, userAlias) => {
         return tweeter_shared_1.FakeData.instance.getFolloweeCount(userAlias);
     };
@@ -26,21 +26,17 @@ class FollowService {
         const dtos = items.map((user) => user.dto);
         return [dtos, hasMore];
     }
-    follow = async (authToken, userToFollow) => {
-        // Pause so we can see the follow message. Remove when connected to the server
-        await new Promise((f) => setTimeout(f, 2000));
-        // TODO: Call the server
-        const followerCount = await this.getFollowerCount(authToken.token, userToFollow.alias);
-        const followeeCount = await this.getFolloweeCount(authToken.token, userToFollow.alias);
+    async follow(token, userAlias) {
+        // Milestone 3 returns dummy counts; persisting the follow is a later milestone.
+        const followerCount = await this.getFollowerCount(token, userAlias);
+        const followeeCount = await this.getFolloweeCount(token, userAlias);
         return [followerCount, followeeCount];
-    };
-    unfollow = async (authToken, userToUnfollow) => {
-        // Pause so we can see the unfollow message. Remove when connected to the server
-        await new Promise((f) => setTimeout(f, 2000));
-        // TODO: Call the server
-        const followerCount = await this.getFollowerCount(authToken.token, userToUnfollow.alias);
-        const followeeCount = await this.getFolloweeCount(authToken.token, userToUnfollow.alias);
+    }
+    async unfollow(token, userAlias) {
+        // Milestone 3 returns dummy counts; persisting the unfollow is a later milestone.
+        const followerCount = await this.getFollowerCount(token, userAlias);
+        const followeeCount = await this.getFolloweeCount(token, userAlias);
         return [followerCount, followeeCount];
-    };
+    }
 }
 exports.FollowService = FollowService;
