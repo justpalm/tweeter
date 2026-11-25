@@ -1,15 +1,20 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { AuthToken, Status, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/status/PostStatusLambda";
 import * as server from "../../../../tweeter-server/src/model/service/StatusService";
 import { StatusService } from "../../../src/model.service/StatusService";
 
+import { installStatusFixture } from "./helpers/statusFixture";
+import { AWSDAOFactory } from "../../../../tweeter-server/src/model/dao/factory/AWSDAOFactory";
+
 const user = new User("Student", "Author", "@student", "https://example.com/author.png");
 const status = new Status("Hello @allen!\nVisit https://example.com", user, 0);
 const token = new AuthToken("post-token", 123456);
 const request = { token: "post-token", newStatus: status.dto };
+
+beforeEach(() => { installStatusFixture("@student"); });
 
 afterEach(() => { jest.restoreAllMocks(); });
 
@@ -30,7 +35,7 @@ describe("postStatus local client/server path", () => {
 
   it("waits for the server service before reporting success", async () => {
     let finish!: () => void;
-    const service = new server.StatusService();
+    const service = new server.StatusService(new AWSDAOFactory());
     jest.spyOn(server, "StatusService").mockImplementation(() => service);
     jest.spyOn(service, "postStatus")
       .mockImplementation(() => new Promise<void>(resolve => { finish = resolve; }));
@@ -44,7 +49,7 @@ describe("postStatus local client/server path", () => {
   });
 
   it("propagates a server service failure", async () => {
-    const service = new server.StatusService();
+    const service = new server.StatusService(new AWSDAOFactory());
     jest.spyOn(server, "StatusService").mockImplementation(() => service);
     jest.spyOn(service, "postStatus").mockRejectedValue(new Error("post failed"));
     await expect(handler(request)).rejects.toThrow("post failed");

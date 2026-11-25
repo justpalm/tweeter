@@ -14,6 +14,8 @@ function setup() {
   const remove = jest.fn<(token: string) => Promise<void>>().mockResolvedValue(undefined);
   const lookup = jest.fn<() => Promise<null>>().mockResolvedValue(null);
   const factory: DAOFactory = {
+    getStoryDAO: () => { throw new Error("Unexpected story DAO request"); },
+    getFeedDAO: () => { throw new Error("Unexpected feed DAO request"); },
     getFollowDAO: () => { throw new Error("Unexpected follow DAO request"); },
     getImageDAO: () => { throw new Error("Authorization must not request image storage"); },
     getAuthTokenDAO: () => ({ createAuthToken: async () => true, getAuthToken: read,

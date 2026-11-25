@@ -10,6 +10,16 @@ const dao = new DynamoFollowDAO("follows", "users", "follows_index");
 const mock = (value: object = {}) => jest.spyOn(DynamoDBDocumentClient.prototype, "send").mockImplementation(async () => value);
 afterEach(() => { jest.restoreAllMocks(); });
 
+it("enumerates posting recipients from the strong base table through empty filtered pages", async () => {
+  const send = mock().mockResolvedValueOnce({ Items: [], LastEvaluatedKey: { follower_handle: "@x", followee_handle: "@z" } } as never)
+    .mockResolvedValueOnce({ Items: [{ follower_handle: "@b" }, { follower_handle: "@b" }, { follower_handle: "@c" }] } as never);
+  expect(await dao.getPostingFollowers("@a")).toEqual(["@b", "@c"]);
+  expect(send.mock.calls[0][0].input).toMatchObject({ TableName: "follows", ConsistentRead: true,
+    FilterExpression: "followee_handle = :author", ExpressionAttributeValues: { ":author": "@a" } });
+  expect(send.mock.calls[0][0].input).not.toHaveProperty("IndexName");
+  expect(send.mock.calls[1][0].input).toHaveProperty("ExclusiveStartKey.follower_handle", "@x");
+});
+
 it("looks up exact edges and reads legacy/missing/invalid counts", async () => {
   const send = mock();
   expect(await dao.isFollowing("@a", "@b")).toBe(false);

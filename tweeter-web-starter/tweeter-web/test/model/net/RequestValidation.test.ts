@@ -27,7 +27,14 @@ const passwordHash = hashSync("secret", 4); // Low cost only for this local fixt
 
 // This suite tests request validation, so profile/session lookups must not contact DynamoDB.
 beforeEach(() => {
+  jest.spyOn(AWSDAOFactory.prototype, "getStoryDAO").mockReturnValue({
+    createStatus: async () => true, getStory: async () => ({ items: [], hasMore: false }),
+  });
+  jest.spyOn(AWSDAOFactory.prototype, "getFeedDAO").mockReturnValue({
+    addToFeeds: async () => {}, getFeed: async () => ({ items: [], hasMore: false }),
+  });
   jest.spyOn(AWSDAOFactory.prototype, "getFollowDAO").mockReturnValue({
+    getPostingFollowers: async () => [],
     follow: async () => true, unfollow: async () => true, isFollowing: async () => false,
     getCounts: async () => ({ followerCount: 0, followeeCount: 0 }),
     getFollowers: async () => ({ aliases: [], hasMore: false }),

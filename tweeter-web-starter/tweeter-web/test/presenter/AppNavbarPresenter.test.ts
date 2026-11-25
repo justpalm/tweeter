@@ -5,6 +5,7 @@ import { beforeEach, describe, expect, it } from "@jest/globals";
 import { UserService } from "../../src/model.service/UserService";
 
 
+// AI-assisted: see AI-ATTRIBUTION.md
 describe ("AppNavbarPresenter" , () => {
     
     let mockAppNavbarPresenterView : AppNavbarView;
@@ -49,16 +50,27 @@ describe ("AppNavbarPresenter" , () => {
         verify(mockAppNavbarPresenterView.navigate("/login")).once();         
     } )
 
-    it ("tells the view to display an error message and does not tell it to clear the info message, clear the user info, or navigate to the login page when unsuccessful", async () => {
+    it ("reports failed revocation but still clears local state and navigates to login", async () => {
         let error = new Error("An error occurred");
         when(mockService.logout(anything())).thenThrow(error);
 
         await appNavbarPresenter.logOut(authToken);
 
         let [errorString] = capture(mockAppNavbarPresenterView.displayErrorMessage).last();
-        verify(mockAppNavbarPresenterView.displayErrorMessage("Failed to log user out because of exception: An error occurred")).once();
+        verify(mockAppNavbarPresenterView.displayErrorMessage("Signed out on this device, but could not revoke the server session: An error occurred")).once();
+        verify(mockAppNavbarPresenterView.deleteMessage(anything())).once();
+        verify(mockAppNavbarPresenterView.clearUserInfo()).once();
+        verify(mockAppNavbarPresenterView.navigate("/login")).once();
     })
 
+    it("logs out locally without an error toast when the session has expired", async () => {
+        when(mockService.logout(anything())).thenThrow(new Error("Client communicator POST failed:\nunauthorized: Invalid or expired session"));
+        await appNavbarPresenter.logOut(authToken);
+        verify(mockAppNavbarPresenterView.displayErrorMessage(anything())).never();
+        verify(mockAppNavbarPresenterView.deleteMessage(anything())).once();
+        verify(mockAppNavbarPresenterView.clearUserInfo()).once();
+        verify(mockAppNavbarPresenterView.navigate("/login")).once();
+    });
 });
 
 

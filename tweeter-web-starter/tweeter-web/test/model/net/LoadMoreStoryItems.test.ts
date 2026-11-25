@@ -1,15 +1,24 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
-import { afterEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { AuthToken, PagedStatusItemRequest, Status, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/status/LoadMoreStoryItemsLambda";
 import { StatusService } from "../../../src/model.service/StatusService";
 import { ServerFacade } from "../../../src/model/net/ServerFacade";
 
+import { installStatusFixture } from "./helpers/statusFixture";
+
 const request: PagedStatusItemRequest = {
   token: "story-token", userAlias: "@allen", pageSize: 2, lastItem: null,
 };
 const token = new AuthToken(request.token, 0);
+
+beforeEach(() => {
+  const f = installStatusFixture("@allen");
+  const items = [4, 3, 2, 1].map(timestamp => ({ post: `Saved post ${timestamp}`,
+    user: f.profiles.get("@allen")!.dto, timestamp }));
+  f.stories.set("@allen", items);
+});
 
 afterEach(() => { jest.restoreAllMocks(); });
 
@@ -28,15 +37,15 @@ describe("loadMoreStoryItems local client/server path", () => {
     expect(hasMore).toBe(true);
     expect(first[0]).toBeInstanceOf(Status);
     expect(first[0].user).toBeInstanceOf(User);
-    expect(first[0].post.startsWith("Post 0 0\n")).toBe(true);
+    expect(first[0].post).toBe("Saved post 4");
     expect(first[0].user.alias).toBe("@allen");
-    expect(first[0].timestamp).toBe(0);
+    expect(first[0].timestamp).toBe(4);
 
     const [second, moreSecond] = await service.loadMoreStoryItems(token, "@allen", 2, first[1]);
     expect(second).toHaveLength(2);
-    expect(moreSecond).toBe(true);
-    expect(second[0].post.startsWith("Post 0 2\n")).toBe(true);
-    expect(second[0].user.alias).toBe("@bob");
+    expect(moreSecond).toBe(false);
+    expect(second[0].post).toBe("Saved post 2");
+    expect(second[0].user.alias).toBe("@allen");
     expect(JSON.parse(fetchMock.mock.calls[0][1]?.body as string)).toEqual(request);
     expect(JSON.parse(fetchMock.mock.calls[1][1]?.body as string)).toEqual({
       ...request, lastItem: first[1].dto,

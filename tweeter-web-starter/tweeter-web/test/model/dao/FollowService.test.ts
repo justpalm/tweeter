@@ -19,7 +19,9 @@ function setup() {
   const session = jest.fn(async () => ({ token: "session", userAlias: "@owner", lastActiveTimestamp: Date.now() }));
   const refresh = jest.fn(async () => true);
   const factory: DAOFactory = {
-    getFollowDAO: () => ({ follow: mutate, unfollow, getCounts: counts,
+    getStoryDAO: () => { throw new Error("Unexpected story DAO request"); },
+    getFeedDAO: () => { throw new Error("Unexpected feed DAO request"); },
+    getFollowDAO: () => ({ getPostingFollowers: async () => [], follow: mutate, unfollow, getCounts: counts,
       getFollowers: page, getFollowees: followees, isFollowing: status }),
     getUserDAO: () => ({ getUserByAlias: lookup, createUser: async () => true, getPasswordHash: async () => null }),
     getAuthTokenDAO: () => ({ getAuthToken: session, updateLastActiveTimestamp: refresh,

@@ -39,6 +39,8 @@ function setup() {
     return true;
   });
   const factory: DAOFactory = {
+    getStoryDAO: () => { throw new Error("Unexpected story DAO request"); },
+    getFeedDAO: () => { throw new Error("Unexpected feed DAO request"); },
     getFollowDAO: () => { throw new Error("Unexpected follow DAO request"); },
     getUserDAO: () => ({ createUser, getUserByAlias: lookup,
       getPasswordHash: async name => accounts.get(name)?.passwordHash ?? null }),
