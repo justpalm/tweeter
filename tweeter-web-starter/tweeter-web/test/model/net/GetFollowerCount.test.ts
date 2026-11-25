@@ -1,9 +1,10 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/follow/GetFollowerCountLambda";
 import { FollowService } from "../../../src/model.service/FollowService";
+import { FollowService as ServerFollowService } from "../../../../tweeter-server/src/model/service/FollowService";
 import { ServerFacade } from "../../../src/model/net/ServerFacade";
 
 afterEach(() => {
@@ -12,7 +13,7 @@ afterEach(() => {
 
 describe("follower count client/server contract", () => {
   it("passes the token and alias through JSON to the handler and returns its count", async () => {
-    const getCount = jest.spyOn(FakeData.instance, "getFollowerCount").mockReturnValue(7);
+    const getCount = jest.spyOn(ServerFollowService.prototype, "getFollowerCount").mockResolvedValue(7);
     const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/followers/count");
       expect(init?.method).toBe("POST");
@@ -30,7 +31,7 @@ describe("follower count client/server contract", () => {
     );
 
     expect(count).toBe(7);
-    expect(getCount).toHaveBeenCalledWith("@allen");
+    expect(getCount).toHaveBeenCalledWith("test-token", "@allen");
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 

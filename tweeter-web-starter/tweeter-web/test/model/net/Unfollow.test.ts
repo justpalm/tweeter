@@ -1,7 +1,7 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/follow/UnfollowLambda";
 import { FollowService as ServerFollowService } from "../../../../tweeter-server/src/model/service/FollowService";
 import { FollowService } from "../../../src/model.service/FollowService";
@@ -15,9 +15,7 @@ afterEach(() => { jest.restoreAllMocks(); });
 
 describe("unfollow local client/server path", () => {
   it.each([[7, 3], [0, 0]])("returns follower/followee counts %i/%i through JSON", async (followerCount, followeeCount) => {
-    jest.spyOn(FakeData.instance, "getFollowerCount").mockReturnValue(followerCount);
-    jest.spyOn(FakeData.instance, "getFolloweeCount").mockReturnValue(followeeCount);
-    const unfollow = jest.spyOn(ServerFollowService.prototype, "unfollow");
+    const unfollow = jest.spyOn(ServerFollowService.prototype, "unfollow").mockResolvedValue([followerCount, followeeCount]);
     jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/unfollow");
       expect(init?.method).toBe("POST");

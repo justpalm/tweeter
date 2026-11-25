@@ -1,6 +1,13 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: SAM config for Tweeter server
+Parameters:
+  FollowTableName:
+    Type: String
+    Default: follows
+  FollowIndexName:
+    Type: String
+    Default: follows_index
 Globals:
   Function:
     Runtime: nodejs24.x
@@ -15,6 +22,10 @@ Globals:
           Ref: UserTable
         AUTH_TOKEN_TABLE_NAME:
           Ref: AuthTokenTable
+        FOLLOW_TABLE_NAME:
+          Ref: FollowTableName
+        FOLLOW_INDEX_NAME:
+          Ref: FollowIndexName
 Metadata:
   x-common-policies:
   - AWSLambdaBasicExecutionRole
@@ -568,9 +579,11 @@ Resources:
           /lambda/unfollow:
             post:
               description: Unfollows userAlias using token and returns success, message,
-                followerCount, and followeeCount. Milestone 3 returns dummy counts
-                for the target user without persisting the unfollow. Required request
-                fields must be nonblank strings; invalid input returns HTTP 400.
+                followerCount, and followeeCount. Authenticates the stored session
+                owner and atomically removes that owner's relationship and updates
+                counters. Rejects self-unfollow and missing relationships; returns
+                both target-user counts. Required request fields must be nonblank
+                strings; invalid input returns HTTP 400.
               consumes:
               - application/json
               produces:
@@ -633,9 +646,11 @@ Resources:
           /lambda/follow:
             post:
               description: Follows userAlias using token and returns success, message,
-                followerCount, and followeeCount. Milestone 3 returns dummy counts
-                for the target user without persisting the follow. Required request
-                fields must be nonblank strings; invalid input returns HTTP 400.
+                followerCount, and followeeCount. Authenticates the stored session
+                owner and atomically creates that owner's relationship and updates
+                counters. Rejects self-follow and duplicate relationships; returns
+                both target-user counts. Required request fields must be nonblank
+                strings; invalid input returns HTTP 400.
               consumes:
               - application/json
               produces:
@@ -699,7 +714,8 @@ Resources:
             post:
               description: Returns whether followerAlias follows followeeAlias. Accepts
                 token, followerAlias, and followeeAlias; returns success, message,
-                and a boolean isFollowing (dummy data for Milestone 3). Required request
+                and a persisted boolean isFollowing. Authenticates the session and
+                requires followerAlias to match its stored owner. Required request
                 fields must be nonblank strings; invalid input returns HTTP 400.
               consumes:
               - application/json
@@ -766,7 +782,9 @@ Resources:
                 Requires nonblank token and userAlias strings, a positive integer
                 pageSize, and an explicit lastItem (null or a complete user DTO with
                 nonblank firstName, lastName, alias, and imageUrl). Invalid input
-                returns HTTP 400. Milestone 3 uses dummy data.
+                returns HTTP 400. Authenticates the stored session; queries persisted
+                relationships in alias order and resolves public user profiles. Page
+                size is limited to 100.
               consumes:
               - application/json
               produces:
@@ -832,8 +850,9 @@ Resources:
                 after lastItem (null for the first page). Requires nonblank token
                 and userAlias strings, a positive integer pageSize, and an explicit
                 lastItem (null or a complete user DTO with nonblank firstName, lastName,
-                alias, and imageUrl). Invalid input returns HTTP 400. Milestone 3
-                uses dummy data.
+                alias, and imageUrl). Invalid input returns HTTP 400. Authenticates
+                the stored session; queries persisted relationships in alias order
+                and resolves public user profiles. Page size is limited to 100.
               consumes:
               - application/json
               produces:
@@ -895,9 +914,10 @@ Resources:
                       type: string
           /lambda/followees/count:
             post:
-              description: Returns the followee count for the specified user (dummy
-                data for Milestone 3). Required request fields must be nonblank strings;
-                invalid input returns HTTP 400.
+              description: Returns the followee count for the specified user from
+                stored counters after session authentication; absent legacy counters
+                mean zero. Required request fields must be nonblank strings; invalid
+                input returns HTTP 400.
               consumes:
               - application/json
               produces:
@@ -959,9 +979,10 @@ Resources:
                       type: string
           /lambda/followers/count:
             post:
-              description: Returns the follower count for the specified user (dummy
-                data for Milestone 3). Required request fields must be nonblank strings;
-                invalid input returns HTTP 400.
+              description: Returns the follower count for the specified user from
+                stored counters after session authentication; absent legacy counters
+                mean zero. Required request fields must be nonblank strings; invalid
+                input returns HTTP 400.
               consumes:
               - application/json
               produces:

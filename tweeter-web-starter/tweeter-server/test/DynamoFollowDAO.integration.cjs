@@ -13,7 +13,8 @@ async function main() {
   const { USER_TABLE_NAME: users, FOLLOW_TABLE_NAME: follows, FOLLOW_INDEX_NAME: index, AWS_REGION: region } = process.env;
   assert.ok([users, follows, index, region].every(x => x?.trim()), "Set all four table/index/region variables");
   const cleanup = shouldDeleteTestData();
-  const client = DynamoDBDocumentClient.from(new DynamoDBClient({ region }));
+  // The shared user table has 1 WCU; let live assertions back off without changing capacity.
+  const client = DynamoDBDocumentClient.from(new DynamoDBClient({ region, retryMode: "adaptive", maxAttempts: 12 }));
   const dao = new DynamoFollowDAO(follows, users, index, client);
   const [a, b, c] = ["a", "b", "c"].map(x => `@integration-follow-dao-${x}`);
   const owner = "follow-dao-fixture-not-a-password";

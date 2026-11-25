@@ -2,6 +2,15 @@ AWSTemplateFormatVersion: "2010-09-09"
 Transform: AWS::Serverless-2016-10-31
 Description: SAM config for Tweeter server
 
+# AI-assisted: reuse the existing exercise table/index; do not create replacements.
+Parameters:
+  FollowTableName:
+    Type: String
+    Default: follows
+  FollowIndexName:
+    Type: String
+    Default: follows_index
+
 
 #
 # Global Lambda function properties. These apply to every Lambda function.
@@ -18,6 +27,8 @@ Globals:
       Variables:
         USER_TABLE_NAME: !Ref UserTable
         AUTH_TOKEN_TABLE_NAME: !Ref AuthTokenTable
+        FOLLOW_TABLE_NAME: !Ref FollowTableName
+        FOLLOW_INDEX_NAME: !Ref FollowIndexName
 
 
 #
@@ -211,7 +222,7 @@ Resources:
 
           /lambda/unfollow:
             post:
-              description: Unfollows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the unfollow. Required request fields must be nonblank strings; invalid input returns HTTP 400.
+              description: Unfollows userAlias using token and returns success, message, followerCount, and followeeCount. Authenticates the stored session owner and atomically removes that owner's relationship and updates counters. Rejects self-unfollow and missing relationships; returns both target-user counts. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -225,7 +236,7 @@ Resources:
 
           /lambda/follow:
             post:
-              description: Follows userAlias using token and returns success, message, followerCount, and followeeCount. Milestone 3 returns dummy counts for the target user without persisting the follow. Required request fields must be nonblank strings; invalid input returns HTTP 400.
+              description: Follows userAlias using token and returns success, message, followerCount, and followeeCount. Authenticates the stored session owner and atomically creates that owner's relationship and updates counters. Rejects self-follow and duplicate relationships; returns both target-user counts. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -239,7 +250,7 @@ Resources:
 
           /lambda/follow/is-following:
             post:
-              description: Returns whether followerAlias follows followeeAlias. Accepts token, followerAlias, and followeeAlias; returns success, message, and a boolean isFollowing (dummy data for Milestone 3). Required request fields must be nonblank strings; invalid input returns HTTP 400.
+              description: Returns whether followerAlias follows followeeAlias. Accepts token, followerAlias, and followeeAlias; returns success, message, and a persisted boolean isFollowing. Authenticates the session and requires followerAlias to match its stored owner. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -253,7 +264,7 @@ Resources:
 
           /lambda/followees/list:
             post:
-              description: Returns a page of users followed by the specified user. Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete user DTO with nonblank firstName, lastName, alias, and imageUrl). Invalid input returns HTTP 400. Milestone 3 uses dummy data.
+              description: Returns a page of users followed by the specified user. Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete user DTO with nonblank firstName, lastName, alias, and imageUrl). Invalid input returns HTTP 400. Authenticates the stored session; queries persisted relationships in alias order and resolves public user profiles. Page size is limited to 100.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -267,7 +278,7 @@ Resources:
 
           /lambda/followers/list:
             post:
-              description: Returns a page of followers of the specified user, continuing after lastItem (null for the first page). Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete user DTO with nonblank firstName, lastName, alias, and imageUrl). Invalid input returns HTTP 400. Milestone 3 uses dummy data.
+              description: Returns a page of followers of the specified user, continuing after lastItem (null for the first page). Requires nonblank token and userAlias strings, a positive integer pageSize, and an explicit lastItem (null or a complete user DTO with nonblank firstName, lastName, alias, and imageUrl). Invalid input returns HTTP 400. Authenticates the stored session; queries persisted relationships in alias order and resolves public user profiles. Page size is limited to 100.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -281,7 +292,7 @@ Resources:
 
           /lambda/followees/count:
             post:
-              description: Returns the followee count for the specified user (dummy data for Milestone 3). Required request fields must be nonblank strings; invalid input returns HTTP 400.
+              description: Returns the followee count for the specified user from stored counters after session authentication; absent legacy counters mean zero. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:
@@ -295,7 +306,7 @@ Resources:
 
           /lambda/followers/count:
             post:
-              description: Returns the follower count for the specified user (dummy data for Milestone 3). Required request fields must be nonblank strings; invalid input returns HTTP 400.
+              description: Returns the follower count for the specified user from stored counters after session authentication; absent legacy counters mean zero. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:

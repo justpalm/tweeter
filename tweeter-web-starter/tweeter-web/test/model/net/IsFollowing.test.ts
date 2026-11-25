@@ -1,7 +1,7 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/follow/IsFollowingLambda";
 import { FollowService as ServerFollowService } from "../../../../tweeter-server/src/model/service/FollowService";
 import { FollowService } from "../../../src/model.service/FollowService";
@@ -19,8 +19,7 @@ afterEach(() => {
 
 describe("isFollowing client/server contract", () => {
   it.each([true, false])("passes both aliases through JSON and returns %s", async (result) => {
-    jest.spyOn(FakeData.instance, "isFollower").mockReturnValue(result);
-    const serverStatus = jest.spyOn(ServerFollowService.prototype, "isFollowing");
+    const serverStatus = jest.spyOn(ServerFollowService.prototype, "isFollowing").mockResolvedValue(result);
     jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/follow/is-following");
       expect(init?.method).toBe("POST");

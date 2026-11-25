@@ -1,9 +1,10 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { AuthToken, FakeData, User } from "tweeter-shared";
+import { AuthToken, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/follow/FollowLambda";
 import { FollowService } from "../../../src/model.service/FollowService";
+import { FollowService as ServerFollowService } from "../../../../tweeter-server/src/model/service/FollowService";
 import { ServerFacade } from "../../../src/model/net/ServerFacade";
 import { UserInfoPresenter, UserInfoView } from "../../../src/presenter/UserInfoPresenter";
 
@@ -26,9 +27,8 @@ afterEach(() => {
 describe("follow client/server contract", () => {
   it.each([[7, 3], [0, 0]])("returns count tuple %i/%i through one JSON POST", async (followerCount, followeeCount) => {
     
-    //Return the follower and followee counts from the FakeData singleton, so that we can verify that the request is correct and that the response is correctly parsed.
-    jest.spyOn(FakeData.instance, "getFollowerCount").mockReturnValue(followerCount);
-    jest.spyOn(FakeData.instance, "getFolloweeCount").mockReturnValue(followeeCount);
+    // Stub service results; persistence and authentication are covered by service tests.
+    jest.spyOn(ServerFollowService.prototype, "follow").mockResolvedValue([followerCount, followeeCount]);
 
     // we are returnign our own response from the server lambda, so we can check that the request is correct
     const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(

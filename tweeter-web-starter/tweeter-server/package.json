@@ -11,7 +11,8 @@
     "clean": "rimraf dist",
     "test:integration:user-dao": "npm run build && node test/DynamoUserDAO.integration.cjs",
     "test:integration:auth-token-dao": "npm run build && node test/DynamoAuthTokenDAO.integration.cjs",
-    "test:integration:follow-dao": "npm run build && node test/DynamoFollowDAO.integration.cjs"
+    "test:integration:follow-dao": "npm run build && node test/DynamoFollowDAO.integration.cjs",
+    "test:integration:follow-service": "npm run build && node test/FollowService.integration.cjs"
   },
   "keywords": [],
   "author": "",

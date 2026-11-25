@@ -27,6 +27,12 @@ const passwordHash = hashSync("secret", 4); // Low cost only for this local fixt
 
 // This suite tests request validation, so profile/session lookups must not contact DynamoDB.
 beforeEach(() => {
+  jest.spyOn(AWSDAOFactory.prototype, "getFollowDAO").mockReturnValue({
+    follow: async () => true, unfollow: async () => true, isFollowing: async () => false,
+    getCounts: async () => ({ followerCount: 0, followeeCount: 0 }),
+    getFollowers: async () => ({ aliases: [], hasMore: false }),
+    getFollowees: async () => ({ aliases: [], hasMore: false }),
+  });
   jest.spyOn(AWSDAOFactory.prototype, "getImageDAO").mockReturnValue({
     uploadImage: async () => ({ id: "validation-image", url: "https://example.com/validation.png" }),
     deleteImage: async () => {},
@@ -56,8 +62,8 @@ const endpoints: Endpoint[] = [
   { name: "register", handler: register, valid: { firstName: "Allen", lastName: "Anderson", alias: "@registration-validation", password: "secret", imageStringBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYPj/HwADAgH/5ncLrgAAAABJRU5ErkJggg==", imageFileExtension: "png" } },
   { name: "logout", handler: logout, valid: { token: "test-token" } },
   { name: "getUser", handler: getUser, valid: { token: "test-token", alias: "@allen" } },
-  { name: "follow", handler: follow, valid: authenticated },
-  { name: "unfollow", handler: unfollow, valid: authenticated },
+  { name: "follow", handler: follow, valid: { ...authenticated, userAlias: "@amy" } },
+  { name: "unfollow", handler: unfollow, valid: { ...authenticated, userAlias: "@amy" } },
   { name: "getFollowerCount", handler: getFollowerCount, valid: authenticated },
   { name: "getFolloweeCount", handler: getFolloweeCount, valid: authenticated },
   { name: "isFollowing", handler: isFollowing, valid: { token: "test-token", followerAlias: "@allen", followeeAlias: "@amy" } },
