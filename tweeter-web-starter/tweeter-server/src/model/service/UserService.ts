@@ -1,14 +1,17 @@
+// AI-assisted: see AI-ATTRIBUTION.md
 import { AuthToken, User, FakeData } from "tweeter-shared";
+import type { DAOFactory } from "../dao/factory/DAOFactory";
 
 export class UserService {
+  public constructor(private readonly daoFactory: DAOFactory) {}
 
   // AI-assisted: see AI-ATTRIBUTION.md
   public async getUser (
     token: string,
     alias: string
   ): Promise<User | null> {
-    // Milestone 3 uses dummy data; session verification comes later.
-    return FakeData.instance.findUserByAlias(alias);
+    // Session verification remains pending until AuthTokenDAO is implemented.
+    return this.daoFactory.getUserDAO().getUserByAlias(alias);
   };
 
 

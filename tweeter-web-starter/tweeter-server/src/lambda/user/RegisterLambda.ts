@@ -2,12 +2,13 @@
 import { requireStrings } from "../validation/RequestValidation";
 import type { RegisterRequest, RegisterResponse } from "tweeter-shared";
 import { UserService } from "../../model/service/UserService";
+import { AWSDAOFactory } from "../../model/dao/factory/AWSDAOFactory";
 
 export const handler = async (
   request: RegisterRequest,
 ): Promise<RegisterResponse> => {
   requireStrings(request, ["firstName", "lastName", "alias", "password", "imageStringBase64", "imageFileExtension"]);
-  const [user, authToken] = await new UserService().register(
+  const [user, authToken] = await new UserService(new AWSDAOFactory()).register(
     request.firstName,
     request.lastName,
     request.alias,
