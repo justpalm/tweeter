@@ -6,6 +6,7 @@ import { handler } from "../../../../tweeter-server/src/lambda/user/LogoutLambda
 import * as serverModule from "../../../../tweeter-server/src/model/service/UserService";
 import { UserService } from "../../../src/model.service/UserService";
 import { ServerFacade } from "../../../src/model/net/ServerFacade";
+import { AWSDAOFactory } from "../../../../tweeter-server/src/model/dao/factory/AWSDAOFactory";
 
 const request: LogoutRequest = { token: "logout-token" };
 
@@ -28,7 +29,7 @@ describe("logout client/server contract", () => {
   });
 
   it("delegates the exact token and waits for the server service", async () => {
-    const service = new serverModule.UserService();
+    const service = new serverModule.UserService(new AWSDAOFactory());
     let finish!: () => void;
     const logout = jest.spyOn(service, "logout").mockImplementation(() => new Promise<void>(resolve => { finish = resolve; }));
     jest.spyOn(serverModule, "UserService").mockImplementation(() => service);
@@ -42,7 +43,7 @@ describe("logout client/server contract", () => {
   });
 
   it("propagates server service failures instead of acknowledging success", async () => {
-    const service = new serverModule.UserService();
+    const service = new serverModule.UserService(new AWSDAOFactory());
     jest.spyOn(service, "logout").mockRejectedValue(new Error("internal-server-error: logout failed"));
     jest.spyOn(serverModule, "UserService").mockImplementation(() => service);
     await expect(handler(request)).rejects.toThrow("internal-server-error: logout failed");

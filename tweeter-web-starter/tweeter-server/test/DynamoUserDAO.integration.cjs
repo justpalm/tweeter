@@ -80,3 +80,8 @@ testUserDAO().catch(error => {
 // $env:DELETE_TEST_DATA = "false" # Keep the test user for AWS console inspection.
 // $env:DELETE_TEST_DATA = "true"  # Default: clear old fixture, test, then clean up.
 // npm run test:integration:user-dao
+
+// $env:USER_TABLE_NAME = "tweeter-server-UserTable-1JI2ZWJBA00CW"
+// $env:AWS_REGION = "us-east-2"
+// $env:DELETE_TEST_DATA = "true"  # Default: clear old fixture, test, then clean up.
+// npm run test:integration:user-dao

@@ -1,6 +1,7 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
-import { describe, expect, it } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { AWSDAOFactory } from "../../../../tweeter-server/src/model/dao/factory/AWSDAOFactory";
 import { handler as login } from "../../../../tweeter-server/src/lambda/user/LoginLambda";
 import { handler as register } from "../../../../tweeter-server/src/lambda/user/RegisterLambda";
 import { handler as logout } from "../../../../tweeter-server/src/lambda/user/LogoutLambda";
@@ -20,6 +21,16 @@ const user = { firstName: "Allen", lastName: "Anderson", alias: "@allen", imageU
 const status = { post: "Hello @amy!\nhttps://example.com", user, timestamp: 0 };
 const authenticated = { token: "test-token", userAlias: "@allen" };
 const page = { ...authenticated, pageSize: 2, lastItem: null };
+
+// This suite tests request validation, so user lookup must not contact DynamoDB.
+beforeEach(() => {
+  jest.spyOn(AWSDAOFactory.prototype, "getUserDAO").mockReturnValue({
+    createUser: async () => true,
+    getUserByAlias: async () => null,
+    getPasswordHash: async () => null,
+  });
+});
+afterEach(() => { jest.restoreAllMocks(); });
 
 interface Endpoint {
   name: string;

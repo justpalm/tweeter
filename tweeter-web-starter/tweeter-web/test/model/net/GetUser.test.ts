@@ -6,6 +6,7 @@ import { handler } from "../../../../tweeter-server/src/lambda/user/GetUserLambd
 import { UserService as ServerUserService } from "../../../../tweeter-server/src/model/service/UserService";
 import { UserService } from "../../../src/model.service/UserService";
 import { ServerFacade } from "../../../src/model/net/ServerFacade";
+import { AWSDAOFactory } from "../../../../tweeter-server/src/model/dao/factory/AWSDAOFactory";
 
 const request: GetUserRequest = { token: "get-user-token", alias: "@allen" };
 const expectedUser = {
@@ -17,6 +18,11 @@ afterEach(() => { jest.restoreAllMocks(); });
 
 describe("getUser client/server contract", () => {
   it.each(["@allen", "@unknown-get-user-alias"])("retrieves %s through the real local layers and JSON", async alias => {
+    const lookup = jest.fn<(alias: string) => Promise<User | null>>()
+      .mockResolvedValue(alias === "@allen" ? User.fromDto(expectedUser) : null);
+    jest.spyOn(AWSDAOFactory.prototype, "getUserDAO").mockReturnValue({
+      createUser: async () => true, getPasswordHash: async () => null, getUserByAlias: lookup,
+    });
     const getUser = jest.spyOn(ServerUserService.prototype, "getUser");
     const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/user/get");
@@ -30,6 +36,7 @@ describe("getUser client/server contract", () => {
     });
     const user = await new UserService().getUser(new AuthToken(request.token, 123456), alias);
     expect(getUser).toHaveBeenCalledWith(request.token, alias);
+    expect(lookup).toHaveBeenCalledWith(alias);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     if (alias === "@allen") {
       expect(user).toBeInstanceOf(User);

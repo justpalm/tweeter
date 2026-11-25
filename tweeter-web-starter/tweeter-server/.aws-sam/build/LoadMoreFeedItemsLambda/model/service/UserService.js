@@ -1,12 +1,17 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
+// AI-assisted: see AI-ATTRIBUTION.md
 const tweeter_shared_1 = require("tweeter-shared");
 class UserService {
+    daoFactory;
+    constructor(daoFactory) {
+        this.daoFactory = daoFactory;
+    }
     // AI-assisted: see AI-ATTRIBUTION.md
     async getUser(token, alias) {
-        // Milestone 3 uses dummy data; session verification comes later.
-        return tweeter_shared_1.FakeData.instance.findUserByAlias(alias);
+        // Session verification remains pending until AuthTokenDAO is implemented.
+        return this.daoFactory.getUserDAO().getUserByAlias(alias);
     }
     ;
     // AI-assisted: see AI-ATTRIBUTION.md
