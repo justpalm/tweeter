@@ -1,11 +1,9 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, QueryCommand } from "@aws-sdk/lib-dynamodb";
 import { createHash } from "node:crypto";
 import type { StatusDto } from "tweeter-shared";
 import type { StatusCursor, StatusPage } from "../StoryDAO";
-
-export const statusClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+import { dynamoDocumentClient } from "./DynamoClient";
 
 /** IEEE-754 big-endian bytes preserve order for finite nonnegative numbers,
  * including zero/fractions accepted by existing cursors. Author breaks feed ties.
@@ -30,7 +28,7 @@ export function statusItem(ownerAlias: string, status: StatusDto) {
 export class DynamoStatusStore {
   public constructor(
     protected readonly tableName: string,
-    protected readonly client: DynamoDBDocumentClient = statusClient,
+    protected readonly client: DynamoDBDocumentClient = dynamoDocumentClient,
   ) {
     if (!tableName.trim()) throw new Error("Status table name is required");
   }

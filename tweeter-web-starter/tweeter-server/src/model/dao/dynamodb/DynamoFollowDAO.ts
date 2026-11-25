@@ -1,9 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { DynamoDBClient, TransactionCanceledException } from "@aws-sdk/client-dynamodb";
+import { TransactionCanceledException } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, QueryCommand, ScanCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import type { AliasPage, FollowCounts, FollowDAO } from "../FollowDAO";
-
-const documentClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+import { dynamoDocumentClient } from "./DynamoClient";
 
 /** Maps application aliases onto the existing exercise table's handle attributes. */
 export class DynamoFollowDAO implements FollowDAO {
@@ -34,7 +33,7 @@ export class DynamoFollowDAO implements FollowDAO {
     private readonly tableName: string,
     private readonly userTableName: string,
     private readonly indexName: string,
-    private readonly client: DynamoDBDocumentClient = documentClient,
+    private readonly client: DynamoDBDocumentClient = dynamoDocumentClient,
   ) {
     if (![tableName, userTableName, indexName].every(value => value.trim())) {
       throw new Error("Follow table, user table, and reverse index names are required");

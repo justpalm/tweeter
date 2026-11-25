@@ -1,18 +1,15 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { ConditionalCheckFailedException, DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import { DynamoDBDocumentClient, GetCommand, PutCommand } from "@aws-sdk/lib-dynamodb";
 import { User } from "tweeter-shared";
 import type { UserDAO } from "../UserDAO";
-
-// Reuse the SDK client across DAO instances and warm Lambda invocations.
-// Region and credentials come from the standard AWS environment/configuration.
-const documentClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+import { dynamoDocumentClient } from "./DynamoClient";
 
 /** Expects a table with a string partition key named alias and no sort key. */
 export class DynamoUserDAO implements UserDAO {
   public constructor(
     private readonly tableName: string,
-    private readonly client: DynamoDBDocumentClient = documentClient,
+    private readonly client: DynamoDBDocumentClient = dynamoDocumentClient,
   ) {
     if (tableName.trim().length === 0) {
       throw new Error("User table name is required");

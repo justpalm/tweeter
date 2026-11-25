@@ -1,10 +1,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { ConditionalCheckFailedException, DynamoDBClient } from "@aws-sdk/client-dynamodb";
+import { ConditionalCheckFailedException } from "@aws-sdk/client-dynamodb";
 import { DeleteCommand, DynamoDBDocumentClient, GetCommand, PutCommand, UpdateCommand } from "@aws-sdk/lib-dynamodb";
 import type { AuthTokenDAO, AuthTokenRecord } from "../AuthTokenDAO";
-
-// Reuse the client; AWS supplies region and credentials through its standard chain.
-const documentClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
+import { dynamoDocumentClient } from "./DynamoClient";
 
 function isTimestamp(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
@@ -14,7 +12,7 @@ function isTimestamp(value: unknown): value is number {
 export class DynamoAuthTokenDAO implements AuthTokenDAO {
   public constructor(
     private readonly tableName: string,
-    private readonly client: DynamoDBDocumentClient = documentClient,
+    private readonly client: DynamoDBDocumentClient = dynamoDocumentClient,
   ) {
     if (!tableName.trim()) throw new Error("Auth token table name is required");
   }
@@ -32,8 +30,8 @@ export class DynamoAuthTokenDAO implements AuthTokenDAO {
           lastActiveTimestamp: record.lastActiveTimestamp,
         },
 
-        //
-        //
+        // Do not overwrite an existing token; conditional conflicts return false.
+
         //attribute_not_exists prevents overwriting an existing token. 
         // If the token already exists, the PutCommand will throw a ConditionalCheckFailedException, 
         // which we catch and return false to indicate that the token was not created.
