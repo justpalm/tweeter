@@ -1,3 +1,4 @@
+// AI-assisted: see AI-ATTRIBUTION.md
 import { User } from "tweeter-shared/dist/model/domain/User";
 import { LoginView } from "./LoginPresenter";
 import { Presenter } from "./Presenter";
@@ -27,6 +28,6 @@ export class NewUserPresenter<T extends LoginView | RegisterView> extends Presen
     } else {
         this.view.navigate(`/feed/${user.alias}`);
     }
-    }, errorDescription), () => {this.view.setIsLoading(false)}
+    }, errorDescription, async () => {this.view.setIsLoading(false)});
     }
 }

@@ -9,18 +9,52 @@ import type { UserDAO } from "../../../../tweeter-server/src/model/dao/UserDAO";
 import { DynamoUserDAO } from "../../../../tweeter-server/src/model/dao/dynamodb/DynamoUserDAO";
 import { DynamoAuthTokenDAO } from "../../../../tweeter-server/src/model/dao/dynamodb/DynamoAuthTokenDAO";
 import { UserService } from "../../../../tweeter-server/src/model/service/UserService";
+import { S3Client } from "../../../../tweeter-server/node_modules/@aws-sdk/client-s3";
+import { S3ImageDAO } from "../../../../tweeter-server/src/model/dao/s3/S3ImageDAO";
 
 const originalTableName = process.env.USER_TABLE_NAME;
 const originalAuthTableName = process.env.AUTH_TOKEN_TABLE_NAME;
+const originalBucket = process.env.PROFILE_IMAGE_BUCKET_NAME;
+const originalRegion = process.env.AWS_REGION;
 afterEach(() => {
   jest.restoreAllMocks();
   if (originalTableName === undefined) delete process.env.USER_TABLE_NAME;
   else process.env.USER_TABLE_NAME = originalTableName;
   if (originalAuthTableName === undefined) delete process.env.AUTH_TOKEN_TABLE_NAME;
   else process.env.AUTH_TOKEN_TABLE_NAME = originalAuthTableName;
+  if (originalBucket === undefined) delete process.env.PROFILE_IMAGE_BUCKET_NAME;
+  else process.env.PROFILE_IMAGE_BUCKET_NAME = originalBucket;
+  if (originalRegion === undefined) delete process.env.AWS_REGION;
+  else process.env.AWS_REGION = originalRegion;
 });
 
 describe("AWSDAOFactory", () => {
+  it("configures and caches image storage independently of the tables", async () => {
+    delete process.env.USER_TABLE_NAME;
+    delete process.env.AUTH_TOKEN_TABLE_NAME;
+    process.env.PROFILE_IMAGE_BUCKET_NAME = "factory-photos";
+    process.env.AWS_REGION = "us-east-2";
+    const send = jest.spyOn(S3Client.prototype, "send").mockImplementation(async () => ({}));
+    const factory = new AWSDAOFactory();
+    const dao = factory.getImageDAO();
+    expect(dao).toBeInstanceOf(S3ImageDAO);
+    expect(factory.getImageDAO()).toBe(dao);
+    await dao.deleteImage(`profile-images/${"01".repeat(32)}.png`);
+    expect(send.mock.calls[0][0].input).toMatchObject({ Bucket: "factory-photos" });
+    await new AWSDAOFactory(undefined, undefined, "explicit-photos", "us-west-2")
+      .getImageDAO().deleteImage(`profile-images/${"02".repeat(32)}.png`);
+    expect(send.mock.calls[1][0].input).toMatchObject({ Bucket: "explicit-photos" });
+  });
+
+  it("requires image configuration only when image storage is requested", () => {
+    delete process.env.PROFILE_IMAGE_BUCKET_NAME;
+    delete process.env.AWS_REGION;
+    const factory = new AWSDAOFactory("users", "sessions");
+    expect(factory.getUserDAO()).toBeInstanceOf(DynamoUserDAO);
+    expect(factory.getAuthTokenDAO()).toBeInstanceOf(DynamoAuthTokenDAO);
+    expect(() => factory.getImageDAO()).toThrow("PROFILE_IMAGE_BUCKET_NAME and AWS_REGION are required");
+    expect(() => new AWSDAOFactory("users", "sessions", "photos", " ").getImageDAO()).toThrow("AWS_REGION");
+  });
   it("configures and reuses its token DAO independently of the user table", async () => {
     delete process.env.USER_TABLE_NAME;
     process.env.AUTH_TOKEN_TABLE_NAME = "factory-sessions";
@@ -74,6 +108,7 @@ describe("UserService through the abstract factory", () => {
       getUserByAlias: lookup,
     };
     const factory: DAOFactory = {
+      getImageDAO: () => { throw new Error("User lookup must not request image storage"); },
       getUserDAO: () => dao,
       getAuthTokenDAO: () => ({
         createAuthToken: async () => true,

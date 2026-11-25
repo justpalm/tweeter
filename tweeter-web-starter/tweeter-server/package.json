@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "type": "commonjs",
   "scripts": {
-    "prepare:layer:bcryptjs": "node scripts/prepareBcryptLayer.cjs",
+    "prepare:layer": "node scripts/prepareLayerDependencies.cjs",
     "build": "npm run compile",
     "compile": "npm run clean && tsc",
     "clean": "rimraf dist",
@@ -17,6 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.1177.0",
+    "@aws-sdk/client-s3": "^3.1177.0",
     "@aws-sdk/lib-dynamodb": "^3.1177.0",
     "bcryptjs": "^3.0.3",
     "date-fns": "^3.3.1",

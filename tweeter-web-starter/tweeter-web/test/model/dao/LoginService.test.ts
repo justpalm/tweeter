@@ -24,6 +24,7 @@ function setup() {
     return true;
   });
   const factory: DAOFactory = {
+    getImageDAO: () => { throw new Error("Login must not request image storage"); },
     getUserDAO: () => ({ createUser: async () => true, getPasswordHash: readHash, getUserByAlias: readUser }),
     getAuthTokenDAO: () => ({
       createAuthToken: create,
@@ -78,6 +79,13 @@ describe("login credentials and persisted sessions (local DAOs, real bcryptjs)",
   it("does not trim or normalize the submitted password", async () => {
     const { service, create } = setup();
     await expect(service.login(user.alias, ` ${password} `)).rejects.toThrow(/^unauthorized:/);
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("rejects passwords over bcrypt's 72-byte limit rather than ignoring a suffix", async () => {
+    const { service, readHash, create } = setup();
+    await expect(service.login(user.alias, "é".repeat(37))).rejects.toThrow(/^unauthorized:/);
+    expect(readHash).not.toHaveBeenCalled();
     expect(create).not.toHaveBeenCalled();
   });
 

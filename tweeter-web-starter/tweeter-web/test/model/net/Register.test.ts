@@ -1,7 +1,7 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { AuthToken, FakeData, RegisterRequest, User } from "tweeter-shared";
+import { AuthToken, RegisterRequest, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/user/RegisterLambda";
 import { UserService as ServerUserService } from "../../../../tweeter-server/src/model/service/UserService";
 import { UserService } from "../../../src/model.service/UserService";
@@ -20,9 +20,9 @@ afterEach(() => { jest.restoreAllMocks(); });
 
 describe("registration client/server contract", () => {
   it.each([123456, 0])("preserves server data and timestamp %i through a JSON round trip", async timestamp => {
-    jest.spyOn(FakeData.instance, "firstUser", "get").mockReturnValue(user);
-    jest.spyOn(FakeData.instance, "authToken", "get").mockReturnValue(new AuthToken("server-token", timestamp));
-    const register = jest.spyOn(ServerUserService.prototype, "register");
+    // Contract-only result; credential/image/session behavior has separate tests.
+    const register = jest.spyOn(ServerUserService.prototype, "register")
+      .mockResolvedValue([user, new AuthToken("server-token", timestamp)]);
     const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/register");
       expect(init?.method).toBe("POST");
@@ -53,9 +53,10 @@ describe("registration client/server contract", () => {
     await expect(handler(request)).rejects.toThrow("internal-server-error: registration failed");
   });
 
-  it("rejects registration when dummy user data is unavailable", async () => {
-    jest.spyOn(FakeData.instance, "firstUser", "get").mockReturnValue(null);
-    await expect(handler(request)).rejects.toThrow("internal-server-error: Invalid registration");
+  it("propagates a duplicate alias rejection", async () => {
+    jest.spyOn(ServerUserService.prototype, "register")
+      .mockRejectedValue(new Error("bad-request: Alias already registered"));
+    await expect(handler(request)).rejects.toThrow("bad-request: Alias already registered");
   });
 
   it.each(["Alias unavailable", null])("handles application failure with message %s", async message => {

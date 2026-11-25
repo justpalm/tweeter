@@ -1,9 +1,10 @@
 // AI-assisted: see AI-ATTRIBUTION.md
-import { AuthToken, User, FakeData } from "tweeter-shared";
-import { compare } from "bcryptjs";
+import { AuthToken, User } from "tweeter-shared";
+import { compare, hash } from "bcryptjs";
 import { randomBytes } from "node:crypto";
 import type { DAOFactory } from "../dao/factory/DAOFactory";
 import { AuthorizationService } from "./AuthorizationService";
+import { decodeProfileImage } from "../domain/ProfileImage";
 
 export class UserService {
   public constructor(private readonly daoFactory: DAOFactory) {}
@@ -30,6 +31,10 @@ export class UserService {
     alias: string,
     password: string
   ): Promise<[User, AuthToken]> {
+    // bcrypt compares at most 72 UTF-8 bytes; do not silently accept a suffix.
+    if (Buffer.byteLength(password, "utf8") > 72) {
+      throw new Error("unauthorized: Invalid alias or password");
+    }
     const userDAO = this.daoFactory.getUserDAO();
     const passwordHash = await userDAO.getPasswordHash(alias);
     if (passwordHash === null || !await compare(password, passwordHash)) {
@@ -41,6 +46,11 @@ export class UserService {
       throw new Error("internal-server-error: User profile unavailable");
     }
 
+    return [user, await this.issueSession(user.alias)];
+  }
+
+  // AI-assisted: see AI-ATTRIBUTION.md
+  private async issueSession(userAlias: string): Promise<AuthToken> {
     const tokenDAO = this.daoFactory.getAuthTokenDAO();
 
 
@@ -51,11 +61,11 @@ export class UserService {
       const timestamp = Date.now();
       const created = await tokenDAO.createAuthToken({
         token,
-        userAlias: user.alias,
+        userAlias,
         lastActiveTimestamp: timestamp,
       });
       // Return only after persistence succeeds. Retry only an actual collision.
-      if (created) return [user, new AuthToken(token, timestamp)];
+      if (created) return new AuthToken(token, timestamp);
     }
     throw new Error("internal-server-error: Unable to create session");
   }
@@ -69,11 +79,31 @@ export class UserService {
     imageStringBase64: string,
     imageFileExtension: string,
   ): Promise<[User, AuthToken]> {
-    // Milestone 3 returns dummy data; account/image persistence comes later.
-    const user = FakeData.instance.firstUser;
-    if (user === null) {
-      throw new Error("internal-server-error: Invalid registration");
+    const userDAO = this.daoFactory.getUserDAO();
+    if (await userDAO.getUserByAlias(alias) !== null) {
+      throw new Error("bad-request: Alias already registered");
     }
-    return [user, FakeData.instance.authToken];
+    if (Buffer.byteLength(password, "utf8") > 72) {
+      throw new Error("bad-request: Password must not exceed 72 UTF-8 bytes");
+    }
+    const image = decodeProfileImage(imageStringBase64, imageFileExtension);
+    const imageDAO = this.daoFactory.getImageDAO();
+    const passwordHash = await hash(password, 10);
+    const storedImage = await imageDAO.uploadImage(image);
+    const user = new User(firstName, lastName, alias, storedImage.url);
+
+    // The precheck avoids ordinary duplicate uploads; the atomic write handles races.
+    // On a thrown storage error, the write outcome may be unknown: retain the image.
+    const created = await userDAO.createUser(user, passwordHash);
+    if (!created) {
+      try {
+        await imageDAO.deleteImage(storedImage.id);
+      } catch (error) {
+        throw new Error("internal-server-error: Duplicate registration image cleanup failed", { cause: error });
+      }
+      throw new Error("bad-request: Alias already registered");
+    }
+    // Once saved, keep the account/photo if session issuance fails; login can retry.
+    return [user, await this.issueSession(user.alias)];
   }
 }

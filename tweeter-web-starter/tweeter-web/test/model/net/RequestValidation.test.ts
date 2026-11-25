@@ -27,6 +27,10 @@ const passwordHash = hashSync("secret", 4); // Low cost only for this local fixt
 
 // This suite tests request validation, so profile/session lookups must not contact DynamoDB.
 beforeEach(() => {
+  jest.spyOn(AWSDAOFactory.prototype, "getImageDAO").mockReturnValue({
+    uploadImage: async () => ({ id: "validation-image", url: "https://example.com/validation.png" }),
+    deleteImage: async () => {},
+  });
   jest.spyOn(AWSDAOFactory.prototype, "getAuthTokenDAO").mockReturnValue({
     createAuthToken: async () => true,
     getAuthToken: async token => ({ token, userAlias: "@allen", lastActiveTimestamp: Date.now() }),
@@ -35,7 +39,7 @@ beforeEach(() => {
   });
   jest.spyOn(AWSDAOFactory.prototype, "getUserDAO").mockReturnValue({
     createUser: async () => true,
-    getUserByAlias: async () => User.fromDto(user),
+    getUserByAlias: async alias => alias === "@registration-validation" ? null : User.fromDto(user),
     getPasswordHash: async () => passwordHash,
   });
 });
@@ -49,7 +53,7 @@ interface Endpoint {
 
 const endpoints: Endpoint[] = [
   { name: "login", handler: login, valid: { alias: "@allen", password: "secret" } },
-  { name: "register", handler: register, valid: { firstName: "Allen", lastName: "Anderson", alias: "@allen", password: "secret", imageStringBase64: "AP+A", imageFileExtension: "png" } },
+  { name: "register", handler: register, valid: { firstName: "Allen", lastName: "Anderson", alias: "@registration-validation", password: "secret", imageStringBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR4nGNgYPj/HwADAgH/5ncLrgAAAABJRU5ErkJggg==", imageFileExtension: "png" } },
   { name: "logout", handler: logout, valid: { token: "test-token" } },
   { name: "getUser", handler: getUser, valid: { token: "test-token", alias: "@allen" } },
   { name: "follow", handler: follow, valid: authenticated },

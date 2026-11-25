@@ -432,11 +432,11 @@ Resources:
                       type: string
           /lambda/login:
             post:
-              description: Logs in using alias and password without an existing token.
-                Returns success, message, user DTO, token string, and timestamp. Milestone
-                3 returns a dummy user/session without verifying credentials. Required
-                request fields must be nonblank strings; invalid input returns HTTP
-                400.
+              description: Verifies alias and password against the stored bcrypt hash,
+                then persists a secure server-generated session. Returns success,
+                message, public user DTO, token string, and server timestamp. Invalid
+                credentials return HTTP 401. Required request fields must be nonblank
+                strings; invalid input returns HTTP 400.
               consumes:
               - application/json
               produces:
@@ -499,11 +499,13 @@ Resources:
           /lambda/register:
             post:
               description: Registers using firstName, lastName, alias, password, imageStringBase64,
-                and imageFileExtension without an existing token. Returns success,
-                message, user DTO, token string, and timestamp. Milestone 3 returns
-                a dummy user/session without persisting the account or image. Required
-                request fields must be nonblank strings; invalid input returns HTTP
-                400.
+                and imageFileExtension without an existing token. Hashes passwords,
+                uploads a PNG/JPEG/GIF/WebP photo to S3, atomically creates the account,
+                and issues a persisted session. Returns success, message, public user
+                DTO, token string, and server timestamp. Required strings must be
+                nonblank; passwords must fit 72 UTF-8 bytes and images must be valid
+                base64 with a matching signature and at most 3 MiB decoded. Invalid
+                inputs or duplicate aliases return HTTP 400.
               consumes:
               - application/json
               produces:
@@ -1178,6 +1180,10 @@ Resources:
       - AmazonDynamoDBFullAccess
       - AmazonS3FullAccess
       - AmazonSQSFullAccess
+      Environment:
+        Variables:
+          PROFILE_IMAGE_BUCKET_NAME:
+            Ref: ProfileImageBucket
       Events:
         PostApi:
           Type: Api
@@ -1350,6 +1356,33 @@ Resources:
       CodeUri: GetFollowerCountLambda
     Metadata:
       SamResourceId: GetFollowerCountLambda
+  ProfileImageBucket:
+    Type: AWS::S3::Bucket
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      OwnershipControls:
+        Rules:
+        - ObjectOwnership: BucketOwnerEnforced
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: false
+        RestrictPublicBuckets: false
+  ProfileImageBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket:
+        Ref: ProfileImageBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+        - Sid: PublicProfileImageRead
+          Effect: Allow
+          Principal: '*'
+          Action: s3:GetObject
+          Resource:
+            Fn::Sub: ${ProfileImageBucket.Arn}/profile-images/*
   UserTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -1376,3 +1409,8 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
+Outputs:
+  ProfileImageBucketName:
+    Description: Profile photo bucket for registration and owned live-test fixtures
+    Value:
+      Ref: ProfileImageBucket

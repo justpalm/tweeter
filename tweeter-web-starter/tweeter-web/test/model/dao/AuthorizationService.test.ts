@@ -14,6 +14,7 @@ function setup() {
   const remove = jest.fn<(token: string) => Promise<void>>().mockResolvedValue(undefined);
   const lookup = jest.fn<() => Promise<null>>().mockResolvedValue(null);
   const factory: DAOFactory = {
+    getImageDAO: () => { throw new Error("Authorization must not request image storage"); },
     getAuthTokenDAO: () => ({ createAuthToken: async () => true, getAuthToken: read,
       updateLastActiveTimestamp: refresh, deleteAuthToken: remove }),
     getUserDAO: () => ({ createUser: async () => true, getPasswordHash: async () => null, getUserByAlias: lookup }),
