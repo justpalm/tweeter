@@ -17,6 +17,7 @@ Globals:
     Environment:
       Variables:
         USER_TABLE_NAME: !Ref UserTable
+        AUTH_TOKEN_TABLE_NAME: !Ref AuthTokenTable
 
 
 #
@@ -569,6 +570,21 @@ Resources:
           AttributeType: S
       KeySchema:
         - AttributeName: alias
+          KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  # Sessions; userAlias and lastActiveTimestamp are non-key item attributes.
+  AuthTokenTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: token
+          AttributeType: S
+      KeySchema:
+        - AttributeName: token
           KeyType: HASH
       BillingMode: PROVISIONED
       ProvisionedThroughput:
