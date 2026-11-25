@@ -39,6 +39,7 @@ function setup() {
     return true;
   });
   const factory: DAOFactory = {
+    getFollowDAO: () => { throw new Error("Unexpected follow DAO request"); },
     getUserDAO: () => ({ createUser, getUserByAlias: lookup,
       getPasswordHash: async name => accounts.get(name)?.passwordHash ?? null }),
     getImageDAO: () => ({ uploadImage: upload, deleteImage: remove }),

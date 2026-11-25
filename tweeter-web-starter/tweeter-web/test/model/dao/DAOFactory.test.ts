@@ -108,6 +108,7 @@ describe("UserService through the abstract factory", () => {
       getUserByAlias: lookup,
     };
     const factory: DAOFactory = {
+      getFollowDAO: () => { throw new Error("Unexpected follow DAO request"); },
       getImageDAO: () => { throw new Error("User lookup must not request image storage"); },
       getUserDAO: () => dao,
       getAuthTokenDAO: () => ({

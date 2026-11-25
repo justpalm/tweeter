@@ -6,19 +6,32 @@ import type { AuthTokenDAO } from "../AuthTokenDAO";
 import { DynamoAuthTokenDAO } from "../dynamodb/DynamoAuthTokenDAO";
 import type { ImageDAO } from "../ImageDAO";
 import { S3ImageDAO } from "../s3/S3ImageDAO";
+import type { FollowDAO } from "../FollowDAO";
+import { DynamoFollowDAO } from "../dynamodb/DynamoFollowDAO";
 
 /** Selects the AWS implementations; services depend only on DAOFactory. */
 export class AWSDAOFactory implements DAOFactory {
   private userDAO?: UserDAO;
   private authTokenDAO?: AuthTokenDAO;
   private imageDAO?: ImageDAO;
+  private followDAO?: FollowDAO;
 
   public constructor(
     private readonly userTableName = process.env.USER_TABLE_NAME,
     private readonly authTokenTableName = process.env.AUTH_TOKEN_TABLE_NAME,
     private readonly imageBucketName = process.env.PROFILE_IMAGE_BUCKET_NAME,
     private readonly region = process.env.AWS_REGION,
+    private readonly followTableName = process.env.FOLLOW_TABLE_NAME,
+    private readonly followIndexName = process.env.FOLLOW_INDEX_NAME,
   ) {}
+
+  public getFollowDAO(): FollowDAO {
+    if (!this.followTableName?.trim() || !this.userTableName?.trim() || !this.followIndexName?.trim()) {
+      throw new Error("internal-server-error: FOLLOW_TABLE_NAME, USER_TABLE_NAME, and FOLLOW_INDEX_NAME are required");
+    }
+    this.followDAO ??= new DynamoFollowDAO(this.followTableName, this.userTableName, this.followIndexName);
+    return this.followDAO;
+  }
 
   public getImageDAO(): ImageDAO {
     if (!this.imageBucketName?.trim() || !this.region?.trim()) {
