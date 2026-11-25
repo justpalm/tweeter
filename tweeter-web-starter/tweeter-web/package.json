@@ -28,7 +28,8 @@
     "serve": "vite preview",
     "reload": "npm run build && npm run serve",
     "test": "jest --passWithNoTests",
-    "test:integration:get-user": "jest --runInBand --runTestsByPath test/model/net/GetUser.integration.test.ts"
+    "test:integration:get-user": "jest --runInBand --runTestsByPath test/model/net/GetUser.integration.test.ts",
+    "test:integration:login": "jest --runInBand --runTestsByPath test/model/net/Login.integration.test.ts"
   },
   "eslintConfig": {
     "extends": [

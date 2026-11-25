@@ -181,7 +181,8 @@ Resources:
 
           /lambda/login:
             post:
-              description: Logs in using alias and password without an existing token. Returns success, message, user DTO, token string, and timestamp. Milestone 3 returns a dummy user/session without verifying credentials. Required request fields must be nonblank strings; invalid input returns HTTP 400.
+              # AI-assisted: see AI-ATTRIBUTION.md
+              description: Verifies alias and password against the stored bcrypt hash, then persists a secure server-generated session. Returns success, message, public user DTO, token string, and server timestamp. Invalid credentials return HTTP 401. Required request fields must be nonblank strings; invalid input returns HTTP 400.
               consumes: *commonConsumes
               produces: *commonProduces
               x-amazon-apigateway-integration:

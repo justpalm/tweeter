@@ -2,6 +2,8 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
 import { AWSDAOFactory } from "../../../../tweeter-server/src/model/dao/factory/AWSDAOFactory";
+import { hashSync } from "../../../../tweeter-server/node_modules/bcryptjs";
+import { User } from "tweeter-shared";
 import { handler as login } from "../../../../tweeter-server/src/lambda/user/LoginLambda";
 import { handler as register } from "../../../../tweeter-server/src/lambda/user/RegisterLambda";
 import { handler as logout } from "../../../../tweeter-server/src/lambda/user/LogoutLambda";
@@ -21,6 +23,7 @@ const user = { firstName: "Allen", lastName: "Anderson", alias: "@allen", imageU
 const status = { post: "Hello @amy!\nhttps://example.com", user, timestamp: 0 };
 const authenticated = { token: "test-token", userAlias: "@allen" };
 const page = { ...authenticated, pageSize: 2, lastItem: null };
+const passwordHash = hashSync("secret", 4); // Low cost only for this local fixture.
 
 // This suite tests request validation, so profile/session lookups must not contact DynamoDB.
 beforeEach(() => {
@@ -32,8 +35,8 @@ beforeEach(() => {
   });
   jest.spyOn(AWSDAOFactory.prototype, "getUserDAO").mockReturnValue({
     createUser: async () => true,
-    getUserByAlias: async () => null,
-    getPasswordHash: async () => null,
+    getUserByAlias: async () => User.fromDto(user),
+    getPasswordHash: async () => passwordHash,
   });
 });
 afterEach(() => { jest.restoreAllMocks(); });

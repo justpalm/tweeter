@@ -1,7 +1,7 @@
 /** @jest-environment node */
 // AI-assisted: see AI-ATTRIBUTION.md
 import { afterEach, describe, expect, it, jest } from "@jest/globals";
-import { AuthToken, FakeData, LoginRequest, User } from "tweeter-shared";
+import { AuthToken, LoginRequest, User } from "tweeter-shared";
 import { handler } from "../../../../tweeter-server/src/lambda/user/LoginLambda";
 import { UserService as ServerUserService } from "../../../../tweeter-server/src/model/service/UserService";
 import { UserService } from "../../../src/model.service/UserService";
@@ -19,9 +19,9 @@ afterEach(() => { jest.restoreAllMocks(); });
 
 describe("login client/server contract", () => {
   it.each([123456, 0])("preserves server data and timestamp %i through a JSON round trip", async timestamp => {
-    jest.spyOn(FakeData.instance, "firstUser", "get").mockReturnValue(user);
-    jest.spyOn(FakeData.instance, "authToken", "get").mockReturnValue(new AuthToken("server-token", timestamp));
-    const login = jest.spyOn(ServerUserService.prototype, "login");
+    // Contract-only mock; real credential/session behavior has separate DAO tests.
+    const login = jest.spyOn(ServerUserService.prototype, "login")
+      .mockResolvedValue([user, new AuthToken("server-token", timestamp)]);
     const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/login");
       expect(init?.method).toBe("POST");
@@ -52,9 +52,10 @@ describe("login client/server contract", () => {
     await expect(handler(request)).rejects.toThrow("internal-server-error: login failed");
   });
 
-  it("rejects login when dummy user data is unavailable", async () => {
-    jest.spyOn(FakeData.instance, "firstUser", "get").mockReturnValue(null);
-    await expect(handler(request)).rejects.toThrow("internal-server-error: Login user data unavailable");
+  it("propagates invalid credentials without returning login data", async () => {
+    jest.spyOn(ServerUserService.prototype, "login")
+      .mockRejectedValue(new Error("unauthorized: Invalid alias or password"));
+    await expect(handler(request)).rejects.toThrow("unauthorized: Invalid alias or password");
   });
 
   it.each(["Login failed", null])("handles application failure with message %s", async message => {

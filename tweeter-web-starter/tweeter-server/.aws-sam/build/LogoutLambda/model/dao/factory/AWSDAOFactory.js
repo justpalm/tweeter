@@ -2,12 +2,23 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AWSDAOFactory = void 0;
 const DynamoUserDAO_1 = require("../dynamodb/DynamoUserDAO");
+const DynamoAuthTokenDAO_1 = require("../dynamodb/DynamoAuthTokenDAO");
 /** Selects the AWS implementations; services depend only on DAOFactory. */
 class AWSDAOFactory {
     userTableName;
+    authTokenTableName;
     userDAO;
-    constructor(userTableName = process.env.USER_TABLE_NAME) {
+    authTokenDAO;
+    constructor(userTableName = process.env.USER_TABLE_NAME, authTokenTableName = process.env.AUTH_TOKEN_TABLE_NAME) {
         this.userTableName = userTableName;
+        this.authTokenTableName = authTokenTableName;
+    }
+    getAuthTokenDAO() {
+        if (!this.authTokenTableName?.trim()) {
+            throw new Error("internal-server-error: AUTH_TOKEN_TABLE_NAME is required");
+        }
+        this.authTokenDAO ??= new DynamoAuthTokenDAO_1.DynamoAuthTokenDAO(this.authTokenTableName);
+        return this.authTokenDAO;
     }
     getUserDAO() {
         if (!this.userTableName?.trim()) {

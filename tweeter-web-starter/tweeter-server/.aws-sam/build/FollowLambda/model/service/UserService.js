@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.UserService = void 0;
 // AI-assisted: see AI-ATTRIBUTION.md
 const tweeter_shared_1 = require("tweeter-shared");
+const AuthorizationService_1 = require("./AuthorizationService");
 class UserService {
     daoFactory;
     constructor(daoFactory) {
@@ -10,13 +11,14 @@ class UserService {
     }
     // AI-assisted: see AI-ATTRIBUTION.md
     async getUser(token, alias) {
-        // Session verification remains pending until AuthTokenDAO is implemented.
+        await new AuthorizationService_1.AuthorizationService(this.daoFactory).authenticate(token);
         return this.daoFactory.getUserDAO().getUserByAlias(alias);
     }
     ;
     // AI-assisted: see AI-ATTRIBUTION.md
     logout = async (token) => {
-        // Milestone 3 acknowledges logout; persistent token invalidation comes later.
+        await new AuthorizationService_1.AuthorizationService(this.daoFactory).authenticate(token);
+        await this.daoFactory.getAuthTokenDAO().deleteAuthToken(token);
     };
     // AI-assisted: see AI-ATTRIBUTION.md
     async login(alias, password) {

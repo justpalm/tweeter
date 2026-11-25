@@ -6,7 +6,8 @@ import { ServerFacade } from "../../../src/model/net/ServerFacade";
 
 // Requires RegisterLambda and POST /lambda/register to be deployed to prod.
 describe("ServerFacade registration live API integration", () => {
-  it("returns the expected Milestone 3 dummy user and a usable session", async () => {
+  // Registration persistence/session issuance is still a separate milestone step.
+  it("returns the current dummy registration user and token shape", async () => {
     const [user, token] = await new ServerFacade().register({
       firstName: "Test", lastName: "Student", alias: "@student", password: "test-password",
       imageStringBase64: "AP+A", imageFileExtension: "png",
