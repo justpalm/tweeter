@@ -14,6 +14,13 @@ afterEach(() => { jest.restoreAllMocks(); });
 
 describe("logout client/server contract", () => {
   it("sends only the token string and awaits the server acknowledgement through JSON", async () => {
+    const remove = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+    jest.spyOn(AWSDAOFactory.prototype, "getAuthTokenDAO").mockReturnValue({
+      createAuthToken: async () => true,
+      getAuthToken: async token => ({ token, userAlias: "@session-owner", lastActiveTimestamp: Date.now() }),
+      updateLastActiveTimestamp: async () => true,
+      deleteAuthToken: remove,
+    });
     const fetchMock = jest.spyOn(globalThis, "fetch").mockImplementation(async (url, init) => {
       expect(url).toBe("https://we8tshfgt5.execute-api.us-east-2.amazonaws.com/prod/lambda/logout");
       expect(init?.method).toBe("POST");
@@ -26,6 +33,7 @@ describe("logout client/server contract", () => {
     });
     await expect(new UserService().logout(new AuthToken(request.token, 123456))).resolves.toBeUndefined();
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(remove).toHaveBeenCalledWith(request.token);
   });
 
   it("delegates the exact token and waits for the server service", async () => {

@@ -22,8 +22,14 @@ const status = { post: "Hello @amy!\nhttps://example.com", user, timestamp: 0 };
 const authenticated = { token: "test-token", userAlias: "@allen" };
 const page = { ...authenticated, pageSize: 2, lastItem: null };
 
-// This suite tests request validation, so user lookup must not contact DynamoDB.
+// This suite tests request validation, so profile/session lookups must not contact DynamoDB.
 beforeEach(() => {
+  jest.spyOn(AWSDAOFactory.prototype, "getAuthTokenDAO").mockReturnValue({
+    createAuthToken: async () => true,
+    getAuthToken: async token => ({ token, userAlias: "@allen", lastActiveTimestamp: Date.now() }),
+    updateLastActiveTimestamp: async () => true,
+    deleteAuthToken: async () => {},
+  });
   jest.spyOn(AWSDAOFactory.prototype, "getUserDAO").mockReturnValue({
     createUser: async () => true,
     getUserByAlias: async () => null,

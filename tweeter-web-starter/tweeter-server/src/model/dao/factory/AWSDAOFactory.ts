@@ -2,12 +2,26 @@
 import type { DAOFactory } from "./DAOFactory";
 import type { UserDAO } from "../UserDAO";
 import { DynamoUserDAO } from "../dynamodb/DynamoUserDAO";
+import type { AuthTokenDAO } from "../AuthTokenDAO";
+import { DynamoAuthTokenDAO } from "../dynamodb/DynamoAuthTokenDAO";
 
 /** Selects the AWS implementations; services depend only on DAOFactory. */
 export class AWSDAOFactory implements DAOFactory {
   private userDAO?: UserDAO;
+  private authTokenDAO?: AuthTokenDAO;
 
-  public constructor(private readonly userTableName = process.env.USER_TABLE_NAME) {}
+  public constructor(
+    private readonly userTableName = process.env.USER_TABLE_NAME,
+    private readonly authTokenTableName = process.env.AUTH_TOKEN_TABLE_NAME,
+  ) {}
+
+  public getAuthTokenDAO(): AuthTokenDAO {
+    if (!this.authTokenTableName?.trim()) {
+      throw new Error("internal-server-error: AUTH_TOKEN_TABLE_NAME is required");
+    }
+    this.authTokenDAO ??= new DynamoAuthTokenDAO(this.authTokenTableName);
+    return this.authTokenDAO;
+  }
 
   public getUserDAO(): UserDAO {
     if (!this.userTableName?.trim()) {

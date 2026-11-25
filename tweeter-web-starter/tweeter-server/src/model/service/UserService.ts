@@ -1,6 +1,7 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { AuthToken, User, FakeData } from "tweeter-shared";
 import type { DAOFactory } from "../dao/factory/DAOFactory";
+import { AuthorizationService } from "./AuthorizationService";
 
 export class UserService {
   public constructor(private readonly daoFactory: DAOFactory) {}
@@ -10,14 +11,15 @@ export class UserService {
     token: string,
     alias: string
   ): Promise<User | null> {
-    // Session verification remains pending until AuthTokenDAO is implemented.
+    await new AuthorizationService(this.daoFactory).authenticate(token);
     return this.daoFactory.getUserDAO().getUserByAlias(alias);
   };
 
 
   // AI-assisted: see AI-ATTRIBUTION.md
   public logout = async (token: string): Promise<void> => {
-    // Milestone 3 acknowledges logout; persistent token invalidation comes later.
+    await new AuthorizationService(this.daoFactory).authenticate(token);
+    await this.daoFactory.getAuthTokenDAO().deleteAuthToken(token);
   };
 
 

@@ -20,6 +20,13 @@ describe("getUser client/server contract", () => {
   it.each(["@allen", "@unknown-get-user-alias"])("retrieves %s through the real local layers and JSON", async alias => {
     const lookup = jest.fn<(alias: string) => Promise<User | null>>()
       .mockResolvedValue(alias === "@allen" ? User.fromDto(expectedUser) : null);
+    const refresh = jest.fn<() => Promise<boolean>>().mockResolvedValue(true);
+    jest.spyOn(AWSDAOFactory.prototype, "getAuthTokenDAO").mockReturnValue({
+      createAuthToken: async () => true,
+      getAuthToken: async token => ({ token, userAlias: "@request-owner", lastActiveTimestamp: Date.now() }),
+      updateLastActiveTimestamp: refresh,
+      deleteAuthToken: async () => {},
+    });
     jest.spyOn(AWSDAOFactory.prototype, "getUserDAO").mockReturnValue({
       createUser: async () => true, getPasswordHash: async () => null, getUserByAlias: lookup,
     });
@@ -37,6 +44,7 @@ describe("getUser client/server contract", () => {
     const user = await new UserService().getUser(new AuthToken(request.token, 123456), alias);
     expect(getUser).toHaveBeenCalledWith(request.token, alias);
     expect(lookup).toHaveBeenCalledWith(alias);
+    expect(refresh).toHaveBeenCalledWith(request.token, expect.any(Number));
     expect(fetchMock).toHaveBeenCalledTimes(1);
     if (alias === "@allen") {
       expect(user).toBeInstanceOf(User);

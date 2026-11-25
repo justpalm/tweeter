@@ -7,16 +7,42 @@ import { AWSDAOFactory } from "../../../../tweeter-server/src/model/dao/factory/
 import type { DAOFactory } from "../../../../tweeter-server/src/model/dao/factory/DAOFactory";
 import type { UserDAO } from "../../../../tweeter-server/src/model/dao/UserDAO";
 import { DynamoUserDAO } from "../../../../tweeter-server/src/model/dao/dynamodb/DynamoUserDAO";
+import { DynamoAuthTokenDAO } from "../../../../tweeter-server/src/model/dao/dynamodb/DynamoAuthTokenDAO";
 import { UserService } from "../../../../tweeter-server/src/model/service/UserService";
 
 const originalTableName = process.env.USER_TABLE_NAME;
+const originalAuthTableName = process.env.AUTH_TOKEN_TABLE_NAME;
 afterEach(() => {
   jest.restoreAllMocks();
   if (originalTableName === undefined) delete process.env.USER_TABLE_NAME;
   else process.env.USER_TABLE_NAME = originalTableName;
+  if (originalAuthTableName === undefined) delete process.env.AUTH_TOKEN_TABLE_NAME;
+  else process.env.AUTH_TOKEN_TABLE_NAME = originalAuthTableName;
 });
 
 describe("AWSDAOFactory", () => {
+  it("configures and reuses its token DAO independently of the user table", async () => {
+    delete process.env.USER_TABLE_NAME;
+    process.env.AUTH_TOKEN_TABLE_NAME = "factory-sessions";
+    const send = jest.spyOn(DynamoDBDocumentClient.prototype, "send").mockImplementation(async () => ({}));
+    const factory = new AWSDAOFactory();
+    const dao = factory.getAuthTokenDAO();
+    expect(dao).toBeInstanceOf(DynamoAuthTokenDAO);
+    expect(factory.getAuthTokenDAO()).toBe(dao);
+    await expect(dao.getAuthToken("factory-token")).resolves.toBeNull();
+    expect(send.mock.calls[0][0].input).toMatchObject({ TableName: "factory-sessions", Key: { token: "factory-token" } });
+    await new AWSDAOFactory("explicit-users", "explicit-sessions").getAuthTokenDAO().getAuthToken("other-token");
+    expect(send.mock.calls[1][0].input).toMatchObject({ TableName: "explicit-sessions" });
+  });
+
+  it("validates token-table configuration lazily without breaking user lookup", async () => {
+    delete process.env.AUTH_TOKEN_TABLE_NAME;
+    const factory = new AWSDAOFactory("factory-users");
+    expect(factory.getUserDAO()).toBeInstanceOf(DynamoUserDAO);
+    expect(() => factory.getAuthTokenDAO()).toThrow("AUTH_TOKEN_TABLE_NAME is required");
+    expect(() => new AWSDAOFactory("factory-users", " ").getAuthTokenDAO()).toThrow("AUTH_TOKEN_TABLE_NAME is required");
+  });
+
   it("uses the configured table and reuses its DynamoDB user DAO", async () => {
     process.env.USER_TABLE_NAME = "factory-users";
     const send = jest.spyOn(DynamoDBDocumentClient.prototype, "send")
@@ -47,7 +73,15 @@ describe("UserService through the abstract factory", () => {
       getPasswordHash: async () => null,
       getUserByAlias: lookup,
     };
-    const factory: DAOFactory = { getUserDAO: () => dao };
+    const factory: DAOFactory = {
+      getUserDAO: () => dao,
+      getAuthTokenDAO: () => ({
+        createAuthToken: async () => true,
+        getAuthToken: async token => ({ token, userAlias: "@session-owner", lastActiveTimestamp: Date.now() }),
+        updateLastActiveTimestamp: async () => true,
+        deleteAuthToken: async () => {},
+      }),
+    };
     return { service: new UserService(factory), lookup };
   }
 
