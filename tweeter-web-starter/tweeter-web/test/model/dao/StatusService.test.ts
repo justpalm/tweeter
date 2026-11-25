@@ -33,9 +33,18 @@ it("does not backfill on follow; retains old entries on unfollow; reads stored f
   f.followers.delete("@reader");
   await service.postStatus("session", { ...input, post: "Third" });
   const story = jest.spyOn(f.story, "getStory");
-  expect((await service.loadMoreFeedItems("session", "@reader", 10, null))[0].map(s => s.post)).toEqual(["Second", input.post]);
-  expect((await service.loadMoreFeedItems("session", "@later", 10, null))[0].map(s => s.post)).toEqual(["Third", "Second"]);
+  expect((await service.loadMoreFeedItems("reader-session", "@reader", 10, null))[0].map(s => s.post)).toEqual(["Second", input.post]);
+  expect((await service.loadMoreFeedItems("later-session", "@later", 10, null))[0].map(s => s.post)).toEqual(["Third", "Second"]);
   expect(story).not.toHaveBeenCalled();
+});
+
+it("restricts feed reads to the authenticated owner but leaves other users' stories readable", async () => {
+  const f = statusFixture();
+  const service = new StatusService(f.factory);
+  const getFeed = jest.spyOn(f.feed, "getFeed");
+  await expect(service.loadMoreFeedItems("session", "@reader", 10, null)).rejects.toThrow("unauthorized:");
+  expect(getFeed).not.toHaveBeenCalled();
+  await expect(service.loadMoreStoryItems("session", "@reader", 10, null)).resolves.toEqual([[], false]);
 });
 
 it.each(["missing", "expired"])("rejects %s sessions on all three operations before storage", async token => {

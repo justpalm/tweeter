@@ -22,6 +22,7 @@ export function installStatusFixture(ownerAlias: string) {
 export function statusFixture(ownerAlias = "@owner") {
   const profiles = new Map([ownerAlias, "@reader", "@later", "@other"].map(alias =>
     [alias, new User("Real", "Student", alias, "https://example.com/profile.png")]));
+  const sessionOwners = new Map([["session", ownerAlias], ["reader-session", "@reader"], ["later-session", "@later"]]);
   const followers = new Set(["@reader"]);
   const stories = new Map<string, StatusDto[]>();
   const feeds = new Map<string, StatusDto[]>();
@@ -39,7 +40,7 @@ export function statusFixture(ownerAlias = "@owner") {
     getUserDAO: () => ({ getUserByAlias: async alias => profiles.get(alias) ?? null,
       getPasswordHash: async () => null, createUser: async () => true }),
     getAuthTokenDAO: () => ({ getAuthToken: async token => token === "missing" ? null
-      : { token, userAlias: ownerAlias, lastActiveTimestamp: token === "expired" ? 0 : Date.now() },
+      : { token, userAlias: sessionOwners.get(token) ?? ownerAlias, lastActiveTimestamp: token === "expired" ? 0 : Date.now() },
       updateLastActiveTimestamp: async () => true, deleteAuthToken: async () => {}, createAuthToken: async () => true }),
     getFollowDAO: () => ({ getPostingFollowers: async () => [...followers],
       follow: async () => true, unfollow: async () => true, isFollowing: async () => false,

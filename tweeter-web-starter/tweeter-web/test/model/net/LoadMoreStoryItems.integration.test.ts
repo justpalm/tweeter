@@ -61,7 +61,9 @@ it("persists real authors, paginates stories/feeds, and observes follow timing",
         for (const status of story) { expect(status.user.dto).toEqual(author.dto); expect(status.timestamp).toBeGreaterThan(0); }
         expect(new Set(story.map(s => s.timestamp)).size).toBe(13);
         expect(story.map(s => s.timestamp)).toEqual(story.map(s => s.timestamp).sort((a, b) => b - a));
-        const feedRequest = { ...request, userAlias: reader.alias };
+        const feedRequest = { ...request, token: readerToken, userAlias: reader.alias };
+        await expect(call(() => api.loadMoreFeedItems({ ...feedRequest, userAlias: author.alias })))
+          .rejects.toThrow("unauthorized:");
         const [feed, feedMore] = await call(() => api.loadMoreFeedItems(feedRequest));
         const [tail, tailMore] = await call(() => api.loadMoreFeedItems({ ...feedRequest, lastItem: feed[9].dto }));
         expect([feed.length, feedMore, tail.length, tailMore]).toEqual([10, true, 1, false]);
