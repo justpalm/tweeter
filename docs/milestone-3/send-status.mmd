@@ -1,0 +1,59 @@
+sequenceDiagram
+    participant UI as PostStatus component
+    participant P as PostStatusPresenter
+    participant V as Component listener
+    participant CS as Client StatusService
+    participant F as ServerFacade
+    participant CC as ClientCommunicator
+    participant API as API Gateway
+    participant L as PostStatusLambda
+    participant SS as Server StatusService
+
+    UI-)P: submitPost(post, currentUser, authToken, event)
+    activate P
+    P->>P: doFailureReportingOperation(operation, description, cleanup)
+    P->>V: setIsLoading(true)
+    P->>V: displayInfoMessage("Posting status...", 0)
+    V-->>P: postingStatusToastId
+    P->>P: getStatus(post, currentUser, Date.now())
+
+    P-)CS: postStatus(authToken, status)
+    activate CS
+    Note over P,CS: Await submission without blocking the browser
+
+    CS-)F: postStatus({token: authToken.token, newStatus: status.dto})
+    activate F
+    F-)CC: doPost(request, "/lambda/status/post")
+    activate CC
+    CC->>CC: JSON.stringify(request)
+
+    CC-)API: HTTP POST /lambda/status/post with JSON body
+    activate API
+    API-)L: handler(request)
+    activate L
+    L->>L: validatePostStatusRequest(request)
+
+    L-)SS: postStatus(request.token, request.newStatus)
+    activate SS
+    Note over SS: Milestone 3 acknowledges submission without persistence
+    SS-->>L: Promise resolves with undefined
+    deactivate SS
+
+    L-->>API: {success: true, message: null}
+    deactivate L
+    API-->>CC: HTTP 200 with JSON response
+    deactivate API
+
+    CC->>CC: await response.json()
+    CC-->>F: PostStatusResponse
+    deactivate CC
+    F->>F: Check response.success
+    F-->>CS: Promise resolves with undefined
+    deactivate F
+    CS-->>P: Promise resolves with undefined
+    deactivate CS
+
+    P->>P: clearPost(event)
+    P->>V: setPost("")
+    P->>V: displayInfoMessage("Status posted!", 2000)
+    deactivate P

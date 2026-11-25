@@ -1,0 +1,98 @@
+Conversation Transcript
+Scope: user and assistant chat messages only; internal instructions and tool-call logs are excluded.
+
+--- Turn 1: User ---
+Hey CoPitlo.
+
+I am going to give you a complex context for this tweeter-web project.
+
+Can you digest and all associated docuemtns within the md so that we are on the saem page? 
+
+And, for future reference, how can we save this kind of context moving forward?
+
+--- Turn 1: Assistant ---
+I’ll locate the project’s Markdown context and review the related documents, then summarize the shared understanding and suggest a durable way to preserve it.
+
+--- Turn 2: User ---
+https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-3/milestone-3.md
+
+
+This is the context I am talking about
+
+--- Turn 2: Assistant ---
+Thanks for clarifying. I?ll read the milestone document and follow its related links so I can summarize the full set of applicable context.
+
+Hi! I?ve reviewed the [Milestone 3 specification](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-3/milestone-3.md) and its related written material: the API design suggestions, AWS resource-management guide, milestone submission requirements, debugging tips, FAQ, project overview, and BYU?s AI-use policy.
+
+**Here?s the shared context I?ll use:**
+
+- **Milestone 3 is a vertical-slice migration:** move the 14 feature operations from client-side fake data to AWS Lambda/API Gateway, one feature at a time. The client should reach the backend through its Services, a `ServerFacade`, and a `ClientCommunicator`; it should no longer access `FakeData` directly.
+- **Keep the layers and shared data types clear:** Lambda handlers delegate to server-side Services; request/response types belong in the shared module. For this milestone, dummy data is still expected?persistence comes later. Include auth-token support in the API design, even if credentials and tokens are hard-coded for now.
+- **Design and verify the API deliberately:** use consistent endpoint naming, paginate lists, document and publish the endpoints, configure CORS for error responses, and test the Lambda and API Gateway before wiring up the client. The spec recommends POST for all endpoints as the simpler assignment approach.
+- **Cover the specified integration tests:** facade tests for Register, GetFollowers, and follower/following counts; plus a successful story-retrieval test for `StatusService`. Check that results are correct, not merely present.
+- **Plan for the milestone deliverables:** API Swagger export, a send-status sequence diagram, project zip, and AI attribution log.
+- **Work within the course?s AI Level 3 ?Partner? policy:** collaborate, verify the work, understand what goes into the submission, and keep the attribution log. The spec also calls out a target of 20 substantial commits over 3?5 days.
+- **Keep the FAQ?s common pitfalls in mind:** JSON loses class methods, getter/setter names affect serialization, avoid double-stringifying values, and await asynchronous work throughout.
+
+For future sessions, a checked-in **`.github/copilot-instructions.md`** is a good place for concise, durable project guidance (architecture, current milestone, conventions, constraints, and links to the official spec). Keep detailed or changing project status in a separate context document if needed. That way, the guidance is available in the workspace instead of relying on this chat?s history. I?ve also saved the Milestone 3 specification as a reference here.
+
+--- Turn 3: User ---
+K, let's make that document please and save it within the project
+
+--- Turn 3: Assistant ---
+I’ll add a concise workspace instructions file with the Milestone 3 context, official references, and collaboration constraints. First I’m checking the project root so I don’t overwrite existing guidance.Created the project context and Copilot guidance at the repository root: [copilot-instructions.md](</C:/CS 340/tweeter-web-starter/.github/copilot-instructions.md>).
+
+It captures the Milestone 3 architecture, testing and deliverable expectations, AI-use guidance, and links to the official references. I verified the file exists; no tests were needed for this documentation-only change.
+
+--- Turn 4: User ---
+Was the article that was linkned by professor wilkerson also considered in the creation of this document? I need that to be an official reference and what guides our interactions moving forward
+
+--- Turn 4: Assistant ---
+You’re right—the context file included the AI-use levels but not Professor Wilkerson’s linked article. I’ll review that article now, then add it as an official reference and reflect its guidance in the project instructions.I’ve reviewed the article. It recommends a concise root `AGENTS.md` and bounded tasks, careful review, independent checks, and attribution—not just a reference link. I’m updating the project guidance to follow that, replacing the longer Copilot-only file to avoid conflicting duplicate instructions.The article also recommends an attribution entry for AI-assisted work. There isn’t a project attribution log yet, so I’m adding the entry for this guidance update and leaving its review field for you to complete, as the article advises.You’re right—the article was missing from the first document. I’ve now reviewed it and updated the project guidance to follow its recommendations: use bounded tasks, clarify ambiguous requirements before editing, review changes against the requirements, and verify results independently.
+
+I replaced the Copilot-only file with the root-level [AGENTS.md](</C:/CS 340/tweeter-web-starter/AGENTS.md>), added Professor Wilkerson’s article as an official reference, and created an [AI attribution log](</C:/CS 340/tweeter-web-starter/AI-ATTRIBUTION.md>) with this work recorded and `Review: TODO` for you to complete. I’ll use this guidance in our future project work. The worktree already had other uncommitted changes; I left them untouched.
+
+--- Turn 5: User ---
+Okay, no in Dr. Wilkerson document there are templates for the type of prompts I'm supposed to be sending. Could you add a md of what those templates are so that I have them at hand and here in the project? I guess also for you to look at if ever necessary
+
+--- Turn 5: Assistant ---
+I can add an original, Tweeter-specific set of prompt templates rather than copy the article’s wording verbatim. I’ll cover the prompt types it describes and link the guide from `AGENTS.md` so it’s easy for both of us to find.Added [AI-PROMPT-TEMPLATES.md](</C:/CS 340/tweeter-web-starter/AI-PROMPT-TEMPLATES.md>) with original, Tweeter-oriented templates for planning, implementation, bug fixes, refactoring, tests, code explanations, session handoffs, and attribution entries. It’s based on the article’s practices, not copied verbatim.
+
+I linked it from [AGENTS.md](</C:/CS 340/tweeter-web-starter/AGENTS.md>) so it’s available for future work, and recorded the change in [AI-ATTRIBUTION.md](</C:/CS 340/tweeter-web-starter/AI-ATTRIBUTION.md>) with `Review: TODO`. No tests were needed for this documentation-only change.
+
+--- Turn 6: User ---
+Is it right for you to be changing the atribution after every piece of work? Or would it not be better to change that only at the end of a session? Thoughts and correct me if the instructions from Wilkerson say otherwrise
+
+--- Turn 6: Assistant ---
+Wilkerson’s article says **one attribution entry per task**, not per edit or message. When a task has changed files, the guidance is to review the work, update its entry, and do that before committing. So a multi-step task gets one entry; separate tasks in one session get separate entries. If there was only one task, updating the log near the end of the session is fine—but don’t wait until session’s end to combine several tasks into one entry.
+
+The `Review: TODO` fields are intentional until you review the work. I should follow that cadence, not log every small change. One caveat: the initial instructions-file creation happened before we set up the attribution log, so it isn’t recorded as its own task; I can add that historical entry if you want the log to be complete.
+
+--- Turn 7: User ---
+Please do add it
+
+--- Turn 7: Assistant ---
+I’ll add a separate historical entry for the original context-file creation, leaving its review status for you to update.Added a separate historical entry for the original context-file creation in [AI-ATTRIBUTION.md](</C:/CS 340/tweeter-web-starter/AI-ATTRIBUTION.md>). Its `Review` field is left as `TODO` for you to complete.
+
+--- Turn 8: User ---
+K let's commit this to GitHutb. What should that process look like?
+
+--- Turn 8: Assistant ---
+I’ll commit only the project-context documents we created, not the other existing worktree changes. I’ll check the repository’s commit style and staged state, then make a local commit; pushing it to GitHub would be a separate step.Committed the guidance documents locally as **`a854d4c` — “Add project AI guidance and prompt templates.”** The commit includes [AGENTS.md](</C:/CS 340/tweeter-web-starter/AGENTS.md>), [AI-PROMPT-TEMPLATES.md](</C:/CS 340/tweeter-web-starter/AI-PROMPT-TEMPLATES.md>), and [AI-ATTRIBUTION.md](</C:/CS 340/tweeter-web-starter/AI-ATTRIBUTION.md>).
+
+The process was: check the repository’s commit style and status, stage only these files, review the staged diff, then commit. Your other existing changes remain untouched and uncommitted. **This commit has not been pushed to GitHub**; pushing is a separate step.
+
+--- Turn 9: User ---
+let's push. I am seeing though that is says there a signifcant amount of changes that have not been pushed to git before this session, is this true/
+
+--- Turn 9: Assistant ---
+I’ll check the branch’s upstream and compare local commits with the remote, separately from the uncommitted files. That will show whether the “unpushed changes” are commits, working-tree edits, or both.Understood. I’ll review the remaining edits and new files before committing them, especially the zip and package manifests, then push the resulting commits. I’ll keep you posted if anything looks generated or sensitive enough to exclude.The source and test edits are separate from a 95 MB zip that contains `node_modules`. That archive is a generated dependency bundle and would make the GitHub commit unusually large, so I shouldn’t include it without your confirmation. Should I leave the zip untracked and commit the other changes?
+
+--- Turn 10: User ---
+here let's stop this, I will take care of the commit
+
+--- Turn 11: User ---
+Please get the full transcript of this conversation in a txt file right here please
+
+--- Turn 11: Assistant ---
+Saved the full chat-message transcript to `conversation-transcript.txt` in the repository root. It includes the user and assistant messages, and excludes internal instructions and tool-call logs.

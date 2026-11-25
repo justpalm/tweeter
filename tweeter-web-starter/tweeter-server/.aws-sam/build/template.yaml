@@ -9,6 +9,10 @@ Globals:
     - Ref: tweeterLayer
     Timeout: 30
     MemorySize: 128
+    Environment:
+      Variables:
+        USER_TABLE_NAME:
+          Ref: UserTable
 Metadata:
   x-common-policies:
   - AWSLambdaBasicExecutionRole
@@ -1344,3 +1348,16 @@ Resources:
       CodeUri: GetFollowerCountLambda
     Metadata:
       SamResourceId: GetFollowerCountLambda
+  UserTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: alias
+        AttributeType: S
+      KeySchema:
+      - AttributeName: alias
+        KeyType: HASH
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
