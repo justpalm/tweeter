@@ -341,3 +341,24 @@ Entries are grouped by date, oldest first. Existing order is retained within eac
 - Scope: Interfaces only. Password hashing/checking, token generation/expiration policy, concrete storage implementations, factory, follower counts, and service wiring remain for later bounded tasks. Existing dummy services, shared/network contracts, deployment configuration, historical instructions, and pre-existing uncommitted work were preserved.
 - Validation: From tweeter-server, npx --no-install tsc --noEmit passed (exit 0); no compiled output generated. Read both new files directly because untracked files do not appear in normal git diff. git diff --check passed for tracked changes. No runtime tests added or run for these interface-only declarations; no application build, live AWS verification, deployment, commit, or push performed. Final edits after the type check clarified comments only.
 - Review: TODO
+
+## 2026-11-24
+
+### Milestone 4A: DynamoDB UserDAO implementation
+
+- Tool: Codex in VS Code.
+- Files: tweeter-server/src/model/dao/dynamodb/DynamoUserDAO.ts (new file), tweeter-web/test/model/dao/DynamoUserDAO.test.ts (new file), tweeter-server/package.json, tweeter-server/package-lock.json, AI-ATTRIBUTION.md.
+- Task: At the student's request, implemented the existing UserDAO contract using the AWS SDK v3 DynamoDB document client, following AWS examples and conditional-write documentation. Installed @aws-sdk/client-dynamodb and @aws-sdk/lib-dynamodb (resolved 3.1177.0). The DAO accepts an explicit table name (string partition key alias, no sort key) and optionally a document client; its default SDK client is reused across instances. Account creation writes only profile fields and the supplied password hash, with an atomic attribute_not_exists condition preventing overwrites. Only ConditionalCheckFailedException becomes false; other storage errors propagate. Strongly consistent lookups project public fields or the password hash separately, reconstruct public User objects explicitly, return null for absent accounts, and reject malformed stored data. Hash generation/checking remains a service responsibility.
+- Tests: Added eight local mocked-SDK tests for conditional creation, duplicate rejection, public-profile reconstruction/hash exclusion, hash retrieval, missing users, malformed records, storage failure propagation, and blank table configuration. Tests use the existing web Jest harness and import the server-installed SDK so the mocked classes match the implementation. No AWS credentials or requests are used by these tests.
+- Validation: Server npm run build passed (exit 0), regenerating ignored compiled output. From tweeter-web, node ../../node_modules/jest/bin/jest.js --runInBand --runTestsByPath test/model/dao/DynamoUserDAO.test.ts test/model/net/GetUser.test.ts test/model/net/Login.test.ts test/model/net/Register.test.ts passed: 4 suites / 63 tests. The initial new-suite run stopped before executing tests because its afterEach callback returned Jest; changed that callback to return void, then the listed final run passed. Read new source/test files directly and reviewed package changes; git diff --check passed with line-ending notices only. npm audit --omit=dev reports one moderate advisory for the pre-existing uuid dependency (GHSA-w5hq-g745-h8pq); no unrelated dependency upgrade performed.
+- Limits: No DynamoDB table was provisioned, no factory or service/handler wiring was changed, no layer dependencies were refreshed, and no live DynamoDB, API Gateway, or deployed-client checks were performed. Existing services still use dummy data. No SAM build, deployment, commit, push, or subagents. Preserved all pre-existing uncommitted files and deletions.
+- Review: TODO
+
+### Milestone 4A: User table in SAM template
+
+- Tool: Codex in VS Code.
+- Files: tweeter-server/template.yaml, AI-ATTRIBUTION.md.
+- Task: At the student's request, adapted the existing commented visitTable sample into an active UserTable resource. Uses a string alias partition key, no sort key or secondary index, and provisioned capacity of 1 read / 1 write unit. Omitted TableName so CloudFormation generates the physical name. Added Globals.Function.Environment.Variables.USER_TABLE_NAME referencing UserTable, making the name available to all functions. Left the followTable sample commented and preserved existing functions, routes, policies, and unrelated work.
+- Validation: sam validate --lint --template-file tweeter-web-starter/tweeter-server/template.yaml passed (exit 0, valid SAM Template). Reviewed the template diff and git diff --check passed with existing package-file line-ending notices. No application tests or builds run for this configuration-only change.
+- Limits: Local template change only; no SAM build or deployment and no AWS table created. DAO factory/service wiring and live persistence verification remain pending. Existing application still uses dummy services. No commit or push.
+- Review: TODO
