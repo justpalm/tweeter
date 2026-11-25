@@ -8,6 +8,10 @@ import type { ImageDAO } from "../ImageDAO";
 import { S3ImageDAO } from "../s3/S3ImageDAO";
 import type { FollowDAO } from "../FollowDAO";
 import { DynamoFollowDAO } from "../dynamodb/DynamoFollowDAO";
+import { DynamoStoryDAO } from "../dynamodb/DynamoStoryDAO";
+import { DynamoFeedDAO } from "../dynamodb/DynamoFeedDAO";
+import type { StoryDAO } from "../StoryDAO";
+import type { FeedDAO } from "../FeedDAO";
 
 /** Selects the AWS implementations; services depend only on DAOFactory. */
 export class AWSDAOFactory implements DAOFactory {
@@ -15,6 +19,8 @@ export class AWSDAOFactory implements DAOFactory {
   private authTokenDAO?: AuthTokenDAO;
   private imageDAO?: ImageDAO;
   private followDAO?: FollowDAO;
+  private storyDAO?: StoryDAO;
+  private feedDAO?: FeedDAO;
 
   public constructor(
     private readonly userTableName = process.env.USER_TABLE_NAME,
@@ -23,7 +29,19 @@ export class AWSDAOFactory implements DAOFactory {
     private readonly region = process.env.AWS_REGION,
     private readonly followTableName = process.env.FOLLOW_TABLE_NAME,
     private readonly followIndexName = process.env.FOLLOW_INDEX_NAME,
+    private readonly storyTableName = process.env.STORY_TABLE_NAME,
+    private readonly feedTableName = process.env.FEED_TABLE_NAME,
   ) {}
+
+  public getStoryDAO(): StoryDAO {
+    if (!this.storyTableName?.trim()) throw new Error("internal-server-error: STORY_TABLE_NAME is required");
+    return this.storyDAO ??= new DynamoStoryDAO(this.storyTableName);
+  }
+
+  public getFeedDAO(): FeedDAO {
+    if (!this.feedTableName?.trim()) throw new Error("internal-server-error: FEED_TABLE_NAME is required");
+    return this.feedDAO ??= new DynamoFeedDAO(this.feedTableName);
+  }
 
   public getFollowDAO(): FollowDAO {
     if (!this.followTableName?.trim() || !this.userTableName?.trim() || !this.followIndexName?.trim()) {

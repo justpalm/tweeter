@@ -11,6 +11,10 @@ export interface AliasPage {
 
 /** Database-independent storage. Services authenticate and supply the stored session owner. */
 export interface FollowDAO {
+  /** Posting-time membership read, independent of eventual reverse-index lag.
+   * Not an atomic snapshot of concurrent relationship changes.
+   */
+  getPostingFollowers(authorAlias: string): Promise<string[]>;
   isFollowing(followerAlias: string, followeeAlias: string): Promise<boolean>;
   /** Missing users return null; absent counters on existing users mean zero. */
   getCounts(userAlias: string): Promise<FollowCounts | null>;

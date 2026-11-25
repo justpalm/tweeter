@@ -1,12 +1,35 @@
 // AI-assisted: see AI-ATTRIBUTION.md
 import { DynamoDBClient, TransactionCanceledException } from "@aws-sdk/client-dynamodb";
-import { DynamoDBDocumentClient, GetCommand, QueryCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
+import { DynamoDBDocumentClient, GetCommand, QueryCommand, ScanCommand, TransactWriteCommand } from "@aws-sdk/lib-dynamodb";
 import type { AliasPage, FollowCounts, FollowDAO } from "../FollowDAO";
 
 const documentClient = DynamoDBDocumentClient.from(new DynamoDBClient({}));
 
 /** Maps application aliases onto the existing exercise table's handle attributes. */
 export class DynamoFollowDAO implements FollowDAO {
+  /** Simple 4A path: strongly read base relationships so a completed follow is
+   * visible immediately. Intentionally trades scan cost for correctness here;
+   * reverse GSI-only delivery can omit a freshly added follower.
+   */
+  public async getPostingFollowers(authorAlias: string): Promise<string[]> {
+    const aliases: string[] = [];
+    let startKey: Record<string, unknown> | undefined;
+    do {
+      const result = await this.client.send(new ScanCommand({
+        TableName: this.tableName, ConsistentRead: true,
+        FilterExpression: "followee_handle = :author",
+        ExpressionAttributeValues: { ":author": authorAlias },
+        ProjectionExpression: "follower_handle", ExclusiveStartKey: startKey,
+      }));
+      for (const item of result.Items ?? []) {
+        if (typeof item.follower_handle !== "string") throw new Error("Invalid stored follower alias");
+        aliases.push(item.follower_handle);
+      }
+      startKey = result.LastEvaluatedKey;
+    } while (startKey);
+    return [...new Set(aliases)];
+  }
+
   public constructor(
     private readonly tableName: string,
     private readonly userTableName: string,

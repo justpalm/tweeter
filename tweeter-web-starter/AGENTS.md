@@ -2,34 +2,43 @@
 
 ## Project context
 
-This is the BYU CS 340 Tweeter project. The current course context is Milestone 3: move the 14 feature operations from client-side fake data to AWS Lambda behind API Gateway, with client calls routed through client Services, `ServerFacade`, and `ClientCommunicator`. Work feature by feature. Milestone 3 uses dummy server data; persistence is a later milestone.
+This is the BYU CS 340 Tweeter project. The current work is Milestone 4A: completing the persistent backend and data-access layer. Status, story, and precomputed feed persistence have been implemented and deployed, but do not assume all Milestone 4A passoff checks are complete. Check the source, [AI-ATTRIBUTION.md](./AI-ATTRIBUTION.md), and current AWS state for what is implemented, deployed, and still pending.
 
-Keep the client, network, Lambda handler, and server-service layers distinct. Put shared request/response types in `tweeter-shared`, and treat data crossing the network as JSON. Follow existing project patterns, preserve behavior outside the task, and make focused changes.
+Milestone 4B is a separate scalability milestone. Its asynchronous SQS feed processing and performance requirements are not met by the current synchronous Milestone 4A fanout.
 
-## How we work together
+Keep the client services, network facade/communicator, Lambda handlers, server services, database-independent DAOs, and concrete AWS DAOs distinct. Network data remains JSON and shared request/response types belong in `tweeter-shared`.
 
-- Treat each change as a bounded task: state the objective, scope/files, constraints, and how completion will be checked. If an important requirement or behavior is ambiguous, ask before choosing.
-- For uncertain or broad tasks, propose an approach and expected files first; wait for approval before editing.
-- Read the relevant specification and existing code before changing anything. Check the final diff against each requirement; do not treat an agent summary or passing self-authored tests as proof of correctness.
-- Run the smallest relevant tests/build/type checks and report exact results. Do not claim completion for unimplemented work or checks that were not run.
-- Keep changes understandable and reviewable. The student is responsible for reviewing, understanding, and being able to explain submitted work.
-- Use [AI-PROMPT-TEMPLATES.md](./AI-PROMPT-TEMPLATES.md) when helpful to scope a task, request a diagnosis, or prepare a handoff.
+## Collaboration and review
 
-## Milestone 3 expectations
+- Milestone 4A is AI Use Level 3 (Partner). Collaborate on designs and code, but the student must review, understand, and be able to explain all submitted work. Keep AI attribution accurate and current.
+- Treat each task as bounded. Inspect the worktree and relevant source/specification first; preserve existing changes.
+- For behavior with multiple reasonable interpretations, explain the options and ask the student before choosing or changing behavior.
+- For a design task, present a concise proposal and wait for approval before implementation.
+- Verify the exact requirement with focused tests/builds. Distinguish local unit tests, live DAO tests, deployed API tests, and browser/UI checks; report which actually ran.
+- Keep changes surgical, update directly related documentation, and do not claim milestone completion from a passing unit suite alone.
+- Use [AI-PROMPT-TEMPLATES.md](./AI-PROMPT-TEMPLATES.md) when helpful.
 
-The specification calls for facade integration tests for registration, followers, and follower/following counts, plus a successful story-retrieval test through `StatusService`. Verify meaningful expected values. Document API methods, configure CORS for success and error responses, and test the relevant handler, API Gateway, and client layers.
+## Milestone 4A design constraints
 
-Milestone deliverables include an exported Swagger/OpenAPI description, a send-status sequence diagram, a project zip, and an AI attribution log. Follow the assignment's commit expectations.
+- DAO interfaces must be database-agnostic. Services obtain DAOs through `DAOFactory` or dependency injection and must not construct concrete DAOs.
+- A status is one post; a story is one author's posts; a feed contains posts from accounts that user follows.
+- A post is saved to its authenticated author's story and copied to the followers' stored feeds. Following does not backfill older posts; unfollowing does not remove copies already in a feed.
+- Preserve existing network DTOs and API signatures unless the student approves a change. The existing status cursor has no opaque ID, so pagination keys must remain reconstructible from the cursor and correctly handle timestamp ties.
+- Authenticate every protected Lambda operation. Use the stored session owner/profile for posting rather than trusting client-supplied author identity.
+- Feed reads are owner-only: require the requested `userAlias` to match the authenticated session owner. Stories remain readable for other users. Keep unit and live-integration fixtures aligned by using the feed owner's session token.
+- The 4A synchronous follower scan and feed writes can be slow at scale and can partially deliver before an error. Do not describe this as meeting 4B's performance requirements.
 
-Milestone 3 is AI Use Level 3 (Partner): collaborate on code and text, but the student must verify and understand all submitted work. Keep AI attribution accurate and up to date; follow instructor/course disclosure requirements.
+## Testing and AWS changes
+
+- Prefer focused local tests for service/DAO behavior. Live DAO tests and deployed API tests are opt-in and may create AWS records; use the repository's ownership-checked fixtures and cleanup controls, and verify cleanup.
+- Milestone 4A requires more than ten items in at least one tab to exercise pagination/scrolling. The prepared live status scenario covers 13 story items and 11 feed items, but a live run and browser scrolling check must be confirmed separately.
+- Before AWS deployment, validate/build, inspect the exact CloudFormation change set, and preserve existing table names/capacities unless explicitly approved. Deployment and live-test authorization are separate from local code changes.
 
 ## Official references
 
-- [Milestone 3 specification](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-3/milestone-3.md)
-- [Professor Wilkerson, “Best Practices for Programming with AI Agents: Getting Started with Task Delegation” (PDF)](https://raw.githubusercontent.com/BYU-CS-340/softwaredesign/main/instruction/ai-programming/Best_Practices_for_Programming_with_AI_Agents-Getting_Started_with_Task_Delegation.pdf)
-- [Milestone 3 FAQ](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-3/milestone-3-faq.md)
-- [API design suggestions](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-3/api-design-suggestions.md)
-- [AWS resource management](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-3/automating-aws-resource-management.md)
-- [Debugging tips](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-3/debugging-tips.md)
+- [Milestone 4A specification](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-4a/milestone-4a.md)
+- [Milestone 4 FAQ](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-4a/milestone-4-faq.md)
 - [Project overview](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/project-overview/tweeter.md)
+- [Milestone 4B specification](https://github.com/BYU-CS-340/softwaredesign/blob/main/tweeter/milestone-4b/milestone-4b.md)
+- [Dr. Wilkerson's AI programming reading](https://github.com/BYU-CS-340/softwaredesign/tree/main/instruction/ai-programming)
 - [BYU CS AI-use levels](https://cs.byu.edu/department/ai-policy)

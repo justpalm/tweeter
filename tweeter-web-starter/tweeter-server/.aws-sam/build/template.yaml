@@ -26,6 +26,10 @@ Globals:
           Ref: FollowTableName
         FOLLOW_INDEX_NAME:
           Ref: FollowIndexName
+        STORY_TABLE_NAME:
+          Ref: StoryTable
+        FEED_TABLE_NAME:
+          Ref: FeedTable
 Metadata:
   x-common-policies:
   - AWSLambdaBasicExecutionRole
@@ -108,12 +112,12 @@ Resources:
         paths:
           /lambda/status/post:
             post:
-              description: Acknowledges posting using a token string and newStatus
-                DTO containing post, nested user, and timestamp. Returns success and
-                message. Milestone 3 does not persist the status, change feed or story
-                data, or verify the session. Requires a nonblank token, nonblank post
-                and nested user fields, and a finite nonnegative timestamp (zero is
-                valid). Invalid input returns HTTP 400.
+              description: Authenticates the stored session, saves a status in the
+                session owner's story, and materializes current followers' feeds before
+                acknowledging. Author profile and posting timestamp come from the
+                server. Existing newStatus DTO and success/message response are preserved.
+                Partial delivery can persist some copies before an error; a repeated
+                HTTP submission is a new post.
               consumes:
               - application/json
               produces:
@@ -175,14 +179,11 @@ Resources:
                       type: string
           /lambda/feed/list:
             post:
-              description: Gets a feed page using token, userAlias, pageSize, and
-                lastItem (a status DTO or null for the first page). Returns success,
-                message, status DTO items, and hasMore. Milestone 3 uses dummy pagination
-                without alias filtering or session verification. Requires nonblank
-                token and userAlias strings, a positive integer pageSize, and an explicit
-                lastItem (null or a complete status DTO with nonblank post and user
-                fields and a finite nonnegative timestamp). Invalid input returns
-                HTTP 400.
+              description: Authenticated newest-first persisted feed page. The requested
+                userAlias must match the session owner. Uses pageSize (1-100) and
+                lastItem (StatusDto or explicit null). Returns status DTO items and
+                hasMore. Cursor author/timestamp exclusively identify the boundary,
+                including ties between authors. Does not merge stories on read.
               consumes:
               - application/json
               produces:
@@ -244,14 +245,10 @@ Resources:
                       type: string
           /lambda/story/list:
             post:
-              description: Gets a story page using token, userAlias, pageSize, and
-                lastItem (a status DTO or null for the first page). Returns success,
-                message, status DTO items, and hasMore. Milestone 3 uses dummy pagination
-                without alias filtering or session verification. Requires nonblank
-                token and userAlias strings, a positive integer pageSize, and an explicit
-                lastItem (null or a complete status DTO with nonblank post and user
-                fields and a finite nonnegative timestamp). Invalid input returns
-                HTTP 400.
+              description: Authenticated newest-first persisted story page for the
+                requested author. Uses token, userAlias, pageSize (1-100), and lastItem
+                (StatusDto or explicit null). Returns status DTO items and hasMore.
+                A story cursor must belong to the requested author. No dummy statuses.
               consumes:
               - application/json
               produces:
@@ -1430,8 +1427,54 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
+  StoryTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: owner_alias
+        AttributeType: S
+      - AttributeName: status_key
+        AttributeType: S
+      KeySchema:
+      - AttributeName: owner_alias
+        KeyType: HASH
+      - AttributeName: status_key
+        KeyType: RANGE
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+  FeedTable:
+    Type: AWS::DynamoDB::Table
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AttributeDefinitions:
+      - AttributeName: owner_alias
+        AttributeType: S
+      - AttributeName: status_key
+        AttributeType: S
+      KeySchema:
+      - AttributeName: owner_alias
+        KeyType: HASH
+      - AttributeName: status_key
+        KeyType: RANGE
+      BillingMode: PROVISIONED
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
 Outputs:
   ProfileImageBucketName:
     Description: Profile photo bucket for registration and owned live-test fixtures
     Value:
       Ref: ProfileImageBucket
+  StoryTableName:
+    Description: Persisted author stories
+    Value:
+      Ref: StoryTable
+  FeedTableName:
+    Description: Precomputed follower feeds
+    Value:
+      Ref: FeedTable
